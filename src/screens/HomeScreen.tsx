@@ -10,9 +10,15 @@ import {
 
 import { Ionicons } from "@expo/vector-icons";
 
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+
+import { RootStackParamList } from "../navigation/AppNavigator";
+
 import { styles } from "../styles/HomeStyles";
 
-export default function HomeScreen() {
+type Props = NativeStackScreenProps<RootStackParamList, "Home">;
+
+export default function HomeScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={styles.container}>
 
@@ -256,7 +262,10 @@ export default function HomeScreen() {
 
 
         {/* Foro */}
-        <TouchableOpacity style={styles.navItem}>
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => navigation.navigate("ChatList")}
+        >
 
           <Ionicons
             name="chatbubbles-outline"

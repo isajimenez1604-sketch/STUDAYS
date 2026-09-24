@@ -7,7 +7,6 @@ import HomeScreen from "../screens/HomeScreen";
 import ChatListScreen from "../screens/ChatListScreen";
 import ChatScreen from "../screens/ChatScreen";
 
-
 export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
