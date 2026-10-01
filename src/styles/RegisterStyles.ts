@@ -89,6 +89,28 @@ export const styles = StyleSheet.create({
     padding: 5,
   },
 
+  inputWrapperError: {
+    borderColor: "#EF4444",
+  },
+
+  errorText: {
+    color: "#EF4444",
+    fontSize: 13,
+    marginTop: 6,
+  },
+
+  generalError: {
+    color: "#EF4444",
+    fontSize: 14,
+    textAlign: "center",
+    marginBottom: 4,
+    marginTop: 4,
+  },
+
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+
   button: {
     backgroundColor: "#3B82F6",
     height: 52,
