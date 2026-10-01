@@ -1,10 +1,10 @@
 import bcrypt from "bcryptjs";
 
 import { supabase } from "../config/supabase";
-import { USERS_TABLE, PublicUser } from "../data/models/User";
-import { RegisterUserDto } from "../dto/RegisterUserDto";
-import { ConflictError, DatabaseError } from "../exceptions/errors";
-import { IUserService } from "./interfaces/IUserService";
+import { USERS_TABLE, PublicUser } from "../data/models/user.model";
+import { RegisterUserDto } from "../dto/user.dto";
+import { AppError } from "../exceptions/errors/app.error";
+import { IUserService } from "./interfaces/user.interface";
 
 const SALT_ROUNDS = 10;
 const PUBLIC_COLUMNS = "id, name, email, created_at";
@@ -20,10 +20,10 @@ export class UserService implements IUserService {
 
     if (findError) {
       console.error("[UserService.register] find:", findError);
-      throw new DatabaseError();
+      throw AppError.database();
     }
     if (existing) {
-      throw new ConflictError("El correo ya está registrado");
+      throw AppError.emailAlreadyExists();
     }
 
     // 2. Hash de la contraseña
@@ -37,12 +37,12 @@ export class UserService implements IUserService {
       .single();
 
     if (error) {
-      // 23505 = unique_violation (por si dos registros llegan al mismo tiempo)
+      // 23505 = unique_violation (dos registros al mismo tiempo)
       if (error.code === "23505") {
-        throw new ConflictError("El correo ya está registrado");
+        throw AppError.emailAlreadyExists();
       }
       console.error("[UserService.register] insert:", error);
-      throw new DatabaseError();
+      throw AppError.database();
     }
 
     return data as PublicUser;

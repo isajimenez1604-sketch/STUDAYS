@@ -1,4 +1,4 @@
-import { ValidationError } from "../exceptions/errors";
+import { AppError } from "../exceptions/errors/app.error";
 
 export interface LoginUserDto {
   email: string;
@@ -23,7 +23,7 @@ export function parseLoginDto(body: unknown): LoginUserDto {
   }
 
   if (Object.keys(errors).length > 0) {
-    throw new ValidationError(errors);
+    throw AppError.validation(errors);
   }
 
   return { email, password };

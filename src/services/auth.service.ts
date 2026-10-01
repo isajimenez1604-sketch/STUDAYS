@@ -3,22 +3,16 @@ import jwt, { SignOptions } from "jsonwebtoken";
 
 import { env } from "../config/env";
 import { supabase } from "../config/supabase";
-import { USERS_TABLE, PublicUser, User } from "../data/models/User";
-import { LoginUserDto } from "../dto/LoginUserDto";
-import {
-  DatabaseError,
-  NotFoundError,
-  UnauthorizedError,
-} from "../exceptions/errors";
-import { IAuthService, LoginResult } from "./interfaces/IAuthService";
+import { USERS_TABLE, PublicUser, User } from "../data/models/user.model";
+import { LoginUserDto } from "../dto/auth.dto";
+import { AppError } from "../exceptions/errors/app.error";
+import { IAuthService, LoginResult } from "./interfaces/auth.interface";
 
 const PUBLIC_COLUMNS = "id, name, email, created_at";
 
 // Se compara contra este hash cuando el correo no existe, para que la
 // respuesta tarde lo mismo y no se pueda adivinar qué correos están registrados.
 const DUMMY_HASH = bcrypt.hashSync("studays-dummy-password", 10);
-
-const INVALID_CREDENTIALS = "Correo o contraseña incorrectos";
 
 export class AuthService implements IAuthService {
   async login(dto: LoginUserDto): Promise<LoginResult> {
@@ -30,7 +24,7 @@ export class AuthService implements IAuthService {
 
     if (error) {
       console.error("[AuthService.login] find:", error);
-      throw new DatabaseError();
+      throw AppError.database();
     }
 
     const user = data as User | null;
@@ -40,7 +34,7 @@ export class AuthService implements IAuthService {
     );
 
     if (!user || !passwordOk) {
-      throw new UnauthorizedError(INVALID_CREDENTIALS);
+      throw AppError.invalidCredentials();
     }
 
     const token = jwt.sign({ email: user.email }, env.jwtSecret, {
@@ -61,10 +55,10 @@ export class AuthService implements IAuthService {
 
     if (error) {
       console.error("[AuthService.getProfile]", error);
-      throw new DatabaseError();
+      throw AppError.database();
     }
     if (!data) {
-      throw new NotFoundError("Usuario no encontrado");
+      throw AppError.userNotFound();
     }
 
     return data as PublicUser;

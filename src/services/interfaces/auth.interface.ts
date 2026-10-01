@@ -1,5 +1,5 @@
-import { LoginUserDto } from "../../dto/LoginUserDto";
-import { PublicUser } from "../../data/models/User";
+import { PublicUser } from "../../data/models/user.model";
+import { LoginUserDto } from "../../dto/auth.dto";
 
 export interface LoginResult {
   token: string;

@@ -55,9 +55,9 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
   if (!response.ok) {
     throw new ApiError(
-      data?.error?.message ?? "Ocurrió un error inesperado",
-      data?.error?.code,
-      data?.error?.details
+      data?.message ?? "Ocurrió un error inesperado",
+      data?.code,
+      data?.details
     );
   }
 

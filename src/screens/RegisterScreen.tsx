@@ -109,7 +109,7 @@ export default function RegisterScreen({ navigation }: Props) {
         }
 
         // Correo ya registrado
-        if (error.code === "CONFLICT") {
+        if (error.code === "EMAIL_ALREADY_EXISTS") {
           setFieldErrors({ email: error.message });
         } else if (!error.details) {
           setGeneralError(error.message);

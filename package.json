@@ -7,6 +7,7 @@
     "@react-navigation/native": "^7.4.1",
     "@react-navigation/native-stack": "^7.19.2",
     "@supabase/supabase-js": "^2.117.2",
+    "awilix": "^13.0.5",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^18.0.5",
@@ -31,7 +32,7 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "api": "tsx watch src/server.ts",
+    "api": "tsx watch src/main.ts",
     "web": "expo start --web"
   },
   "private": true
