@@ -2,18 +2,22 @@ import { NextFunction, Request, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 
 import { env } from "../config/env";
-import { UnauthorizedError } from "../exceptions/errors";
+import { AppError } from "../exceptions/errors/app.error";
 
 export interface AuthRequest extends Request {
   userId?: string;
 }
 
 // Protege rutas: exige el header  Authorization: Bearer <token>
-export function authenticate(req: Request, _res: Response, next: NextFunction) {
+export const authMiddleware = (
+  req: Request,
+  _res: Response,
+  next: NextFunction
+): void => {
   const header = req.headers.authorization;
 
   if (!header || !header.startsWith("Bearer ")) {
-    return next(new UnauthorizedError("Token no proporcionado"));
+    return next(AppError.tokenMissing());
   }
 
   try {
@@ -21,6 +25,6 @@ export function authenticate(req: Request, _res: Response, next: NextFunction) {
     (req as AuthRequest).userId = payload.sub;
     next();
   } catch {
-    next(new UnauthorizedError("Token inválido o expirado"));
+    next(AppError.tokenInvalid());
   }
-}
+};

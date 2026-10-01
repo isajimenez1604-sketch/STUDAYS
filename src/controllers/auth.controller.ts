@@ -1,11 +1,16 @@
 import { NextFunction, Request, Response } from "express";
 
-import { parseLoginDto } from "../dto/LoginUserDto";
-import { AuthRequest } from "../middlewares/authenticate";
-import { IAuthService } from "../services/interfaces/IAuthService";
+import { parseLoginDto } from "../dto/auth.dto";
+import { AuthRequest } from "../middlewares/auth.middleware";
+import { IAuthService } from "../services/interfaces/auth.interface";
 
 export class AuthController {
-  constructor(private readonly authService: IAuthService) {}
+  private readonly authService: IAuthService;
+
+  // Awilix inyecta "authService" desde config/container.ts
+  constructor({ authService }: { authService: IAuthService }) {
+    this.authService = authService;
+  }
 
   login = async (req: Request, res: Response, next: NextFunction) => {
     try {

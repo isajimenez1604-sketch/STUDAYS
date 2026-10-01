@@ -1,4 +1,4 @@
-import { ValidationError } from "../exceptions/errors";
+import { AppError } from "../exceptions/errors/app.error";
 
 export interface RegisterUserDto {
   name: string;
@@ -8,7 +8,7 @@ export interface RegisterUserDto {
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-// Valida y normaliza el body del registro. Lanza ValidationError si algo falla.
+// Valida y normaliza el body del registro. Lanza AppException si algo falla.
 export function parseRegisterDto(body: unknown): RegisterUserDto {
   const data = (body ?? {}) as Record<string, unknown>;
   const errors: Record<string, string> = {};
@@ -33,7 +33,7 @@ export function parseRegisterDto(body: unknown): RegisterUserDto {
   }
 
   if (Object.keys(errors).length > 0) {
-    throw new ValidationError(errors);
+    throw AppError.validation(errors);
   }
 
   return { name, email, password };

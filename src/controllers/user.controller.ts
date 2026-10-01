@@ -1,10 +1,15 @@
 import { NextFunction, Request, Response } from "express";
 
-import { parseRegisterDto } from "../dto/RegisterUserDto";
-import { IUserService } from "../services/interfaces/IUserService";
+import { parseRegisterDto } from "../dto/user.dto";
+import { IUserService } from "../services/interfaces/user.interface";
 
 export class UserController {
-  constructor(private readonly userService: IUserService) {}
+  private readonly userService: IUserService;
+
+  // Awilix inyecta "userService" desde config/container.ts
+  constructor({ userService }: { userService: IUserService }) {
+    this.userService = userService;
+  }
 
   register = async (req: Request, res: Response, next: NextFunction) => {
     try {
