@@ -31,6 +31,11 @@ export const styles = StyleSheet.create({
     color: "#1F2937",
   },
 
+  headerActions: {
+    flexDirection: "row",
+    gap: 10,
+  },
+
   notificationButton: {
     width: 44,
     height: 44,

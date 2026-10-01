@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
@@ -19,13 +20,68 @@ import { RootStackParamList } from "../navigation/AppNavigator";
 
 import { styles } from "../styles/LoginStyles";
 
+import { ApiError, loginUser } from "../services/authApi";
+import { saveToken } from "../services/session";
+
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
+
+type FieldErrors = Partial<Record<"email" | "password", string>>;
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function LoginScreen({ navigation }: Props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const [passwordVisible, setPasswordVisible] = useState(false);
+
+  const [loading, setLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [generalError, setGeneralError] = useState("");
+
+  const handleLogin = async () => {
+    if (loading) return;
+
+    setGeneralError("");
+
+    // Validación básica antes de llamar a la API
+    const errors: FieldErrors = {};
+    if (!EMAIL_REGEX.test(email.trim())) {
+      errors.email = "El correo electrónico no es válido";
+    }
+    if (password.length === 0) {
+      errors.password = "La contraseña es obligatoria";
+    }
+    setFieldErrors(errors);
+
+    if (Object.keys(errors).length > 0) return;
+
+    setLoading(true);
+
+    try {
+      const { token } = await loginUser({
+        email: email.trim(),
+        password,
+      });
+
+      await saveToken(token);
+
+      // replace: así el botón "atrás" no vuelve al login
+      navigation.replace("Home");
+    } catch (error) {
+      if (error instanceof ApiError) {
+        if (error.details) {
+          setFieldErrors(error.details as FieldErrors);
+        } else {
+          setGeneralError(error.message);
+        }
+      } else {
+        setGeneralError("Ocurrió un error inesperado");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -64,7 +120,12 @@ export default function LoginScreen({ navigation }: Props) {
               Correo electrónico
             </Text>
 
-            <View style={styles.inputWrapper}>
+            <View
+              style={[
+                styles.inputWrapper,
+                fieldErrors.email && styles.inputWrapperError,
+              ]}
+            >
               <Text style={styles.icon}>✉</Text>
 
               <TextInput
@@ -78,6 +139,10 @@ export default function LoginScreen({ navigation }: Props) {
                 autoCorrect={false}
               />
             </View>
+
+            {fieldErrors.email && (
+              <Text style={styles.errorText}>{fieldErrors.email}</Text>
+            )}
           </View>
 
           {/* Contraseña */}
@@ -86,7 +151,12 @@ export default function LoginScreen({ navigation }: Props) {
               Contraseña
             </Text>
 
-            <View style={styles.inputWrapper}>
+            <View
+              style={[
+                styles.inputWrapper,
+                fieldErrors.password && styles.inputWrapperError,
+              ]}
+            >
               <Text style={styles.icon}>🔒</Text>
 
               <TextInput
@@ -110,17 +180,31 @@ export default function LoginScreen({ navigation }: Props) {
                 />
               </TouchableOpacity>
             </View>
+
+            {fieldErrors.password && (
+              <Text style={styles.errorText}>{fieldErrors.password}</Text>
+            )}
           </View>
+
+          {/* Error general (credenciales, red, servidor) */}
+          {generalError !== "" && (
+            <Text style={styles.generalError}>{generalError}</Text>
+          )}
 
           {/* Botón */}
           <TouchableOpacity
-            style={styles.button}
-              onPress={() => navigation.navigate("Home")}
+            style={[styles.button, loading && styles.buttonDisabled]}
+            onPress={handleLogin}
+            disabled={loading}
             activeOpacity={0.8}
           >
-            <Text style={styles.buttonText}>
-              Iniciar sesión
-            </Text>
+            {loading ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <Text style={styles.buttonText}>
+                Iniciar sesión
+              </Text>
+            )}
           </TouchableOpacity>
 
           {/* Recuperar contraseña */}

@@ -9,6 +9,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
@@ -19,7 +21,15 @@ import { RootStackParamList } from "../navigation/AppNavigator";
 
 import { styles } from "../styles/RegisterStyles";
 
+import { ApiError, registerUser } from "../services/authApi";
+
 type Props = NativeStackScreenProps<RootStackParamList, "Register">;
+
+type FieldErrors = Partial<
+  Record<"name" | "email" | "password" | "confirmPassword", string>
+>;
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function RegisterScreen({ navigation }: Props) {
   const [name, setName] = useState("");
@@ -34,6 +44,83 @@ export default function RegisterScreen({ navigation }: Props) {
 
   const [confirmPasswordVisible, setConfirmPasswordVisible] =
     useState(false);
+
+  const [loading, setLoading] = useState(false);
+
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+
+  const [generalError, setGeneralError] = useState("");
+
+  // Validación básica antes de llamar a la API
+  const validate = (): FieldErrors => {
+    const errors: FieldErrors = {};
+
+    if (name.trim().length < 2) {
+      errors.name = "El nombre debe tener al menos 2 caracteres";
+    }
+    if (!EMAIL_REGEX.test(email.trim())) {
+      errors.email = "El correo electrónico no es válido";
+    }
+    if (password.length < 8) {
+      errors.password = "La contraseña debe tener al menos 8 caracteres";
+    }
+    if (confirmPassword !== password) {
+      errors.confirmPassword = "Las contraseñas no coinciden";
+    }
+
+    return errors;
+  };
+
+  const handleRegister = async () => {
+    if (loading) return;
+
+    setGeneralError("");
+
+    const errors = validate();
+    setFieldErrors(errors);
+
+    if (Object.keys(errors).length > 0) return;
+
+    setLoading(true);
+
+    try {
+      await registerUser({
+        name: name.trim(),
+        email: email.trim(),
+        password,
+        confirmPassword,
+      });
+
+      Alert.alert(
+        "¡Cuenta creada!",
+        "Tu cuenta se registró correctamente.",
+        [
+          {
+            text: "Continuar",
+            onPress: () => navigation.navigate("Login"),
+          },
+        ]
+      );
+    } catch (error) {
+      if (error instanceof ApiError) {
+        // Errores de validación del servidor por campo
+        if (error.details) {
+          setFieldErrors(error.details as FieldErrors);
+        }
+
+        // Correo ya registrado
+        if (error.code === "CONFLICT") {
+          setFieldErrors({ email: error.message });
+        } else if (!error.details) {
+          setGeneralError(error.message);
+        }
+      } else {
+        setGeneralError("Ocurrió un error inesperado");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -82,7 +169,12 @@ export default function RegisterScreen({ navigation }: Props) {
               Nombre completo
             </Text>
 
-            <View style={styles.inputWrapper}>
+            <View
+              style={[
+                styles.inputWrapper,
+                fieldErrors.name && styles.inputWrapperError,
+              ]}
+            >
 
               <Ionicons
                 name="person-outline"
@@ -102,6 +194,10 @@ export default function RegisterScreen({ navigation }: Props) {
 
             </View>
 
+            {fieldErrors.name && (
+              <Text style={styles.errorText}>{fieldErrors.name}</Text>
+            )}
+
           </View>
 
 
@@ -112,7 +208,12 @@ export default function RegisterScreen({ navigation }: Props) {
               Correo electrónico
             </Text>
 
-            <View style={styles.inputWrapper}>
+            <View
+              style={[
+                styles.inputWrapper,
+                fieldErrors.email && styles.inputWrapperError,
+              ]}
+            >
 
               <Ionicons
                 name="mail-outline"
@@ -134,6 +235,10 @@ export default function RegisterScreen({ navigation }: Props) {
 
             </View>
 
+            {fieldErrors.email && (
+              <Text style={styles.errorText}>{fieldErrors.email}</Text>
+            )}
+
           </View>
 
 
@@ -144,7 +249,12 @@ export default function RegisterScreen({ navigation }: Props) {
               Contraseña
             </Text>
 
-            <View style={styles.inputWrapper}>
+            <View
+              style={[
+                styles.inputWrapper,
+                fieldErrors.password && styles.inputWrapperError,
+              ]}
+            >
 
               <Ionicons
                 name="lock-closed-outline"
@@ -184,6 +294,10 @@ export default function RegisterScreen({ navigation }: Props) {
 
             </View>
 
+            {fieldErrors.password && (
+              <Text style={styles.errorText}>{fieldErrors.password}</Text>
+            )}
+
           </View>
 
 
@@ -194,7 +308,12 @@ export default function RegisterScreen({ navigation }: Props) {
               Confirmar contraseña
             </Text>
 
-            <View style={styles.inputWrapper}>
+            <View
+              style={[
+                styles.inputWrapper,
+                fieldErrors.confirmPassword && styles.inputWrapperError,
+              ]}
+            >
 
               <Ionicons
                 name="lock-closed-outline"
@@ -236,19 +355,36 @@ export default function RegisterScreen({ navigation }: Props) {
 
             </View>
 
+            {fieldErrors.confirmPassword && (
+              <Text style={styles.errorText}>
+                {fieldErrors.confirmPassword}
+              </Text>
+            )}
+
           </View>
+
+
+          {/* Error general (red, servidor, etc.) */}
+          {generalError !== "" && (
+            <Text style={styles.generalError}>{generalError}</Text>
+          )}
 
 
           {/* Botón crear cuenta */}
           <TouchableOpacity
-            style={styles.button}
-            onPress={() => navigation.navigate("Home")}
+            style={[styles.button, loading && styles.buttonDisabled]}
+            onPress={handleRegister}
+            disabled={loading}
             activeOpacity={0.8}
           >
 
-            <Text style={styles.buttonText}>
-              Crear cuenta
-            </Text>
+            {loading ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <Text style={styles.buttonText}>
+                Crear cuenta
+              </Text>
+            )}
 
           </TouchableOpacity>
 

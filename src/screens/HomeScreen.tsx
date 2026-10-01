@@ -6,6 +6,7 @@ import {
   ScrollView,
   SafeAreaView,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
@@ -16,9 +17,34 @@ import { RootStackParamList } from "../navigation/AppNavigator";
 
 import { styles } from "../styles/HomeStyles";
 
+import { clearToken } from "../services/session";
+
 type Props = NativeStackScreenProps<RootStackParamList, "Home">;
 
 export default function HomeScreen({ navigation }: Props) {
+  const handleLogout = () => {
+    Alert.alert(
+      "Cerrar sesión",
+      "¿Seguro que quieres cerrar tu sesión?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Cerrar sesión",
+          style: "destructive",
+          onPress: async () => {
+            await clearToken();
+
+            // reset: borra el historial para que no se pueda volver atrás
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "Login" }],
+            });
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
 
@@ -43,17 +69,36 @@ export default function HomeScreen({ navigation }: Props) {
           </View>
 
 
-          <TouchableOpacity
-            style={styles.notificationButton}
-          >
+          <View style={styles.headerActions}>
 
-            <Ionicons
-              name="notifications-outline"
-              size={24}
-              color="#1F2937"
-            />
+            <TouchableOpacity
+              style={styles.notificationButton}
+            >
 
-          </TouchableOpacity>
+              <Ionicons
+                name="notifications-outline"
+                size={24}
+                color="#1F2937"
+              />
+
+            </TouchableOpacity>
+
+
+            <TouchableOpacity
+              style={styles.notificationButton}
+              onPress={handleLogout}
+              accessibilityLabel="Cerrar sesión"
+            >
+
+              <Ionicons
+                name="log-out-outline"
+                size={24}
+                color="#1F2937"
+              />
+
+            </TouchableOpacity>
+
+          </View>
 
         </View>
 
