@@ -27,12 +27,6 @@ export const AppError = {
       401
     ),
 
-  tokenMissing: () =>
-    new AppException("TOKEN_MISSING", "Token no proporcionado", 401),
-
-  tokenInvalid: () =>
-    new AppException("TOKEN_INVALID", "Token inválido o expirado", 401),
-
   userNotFound: () =>
     new AppException("USER_NOT_FOUND", "Usuario no encontrado", 404),
 
@@ -41,4 +35,11 @@ export const AppError = {
 
   database: () =>
     new AppException("DATABASE_ERROR", "Error en la base de datos", 500),
+
+  internal: () =>
+    new AppException(
+      "INTERNAL_SERVER_ERROR",
+      "Error interno del servidor",
+      500
+    ),
 };

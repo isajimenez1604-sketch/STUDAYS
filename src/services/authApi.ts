@@ -13,14 +13,13 @@ export interface LoginInput {
 }
 
 export interface AppUser {
-  id: string;
+  id: number;
   name: string;
   email: string;
   created_at: string;
 }
 
 export interface LoginResponse {
-  token: string;
   user: AppUser;
 }
 
@@ -77,11 +76,4 @@ export function loginUser(input: LoginInput): Promise<LoginResponse> {
     method: "POST",
     body: JSON.stringify(input),
   });
-}
-
-export async function getProfile(token: string): Promise<AppUser> {
-  const data = await request<{ user: AppUser }>("/auth/me", {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return data.user;
 }

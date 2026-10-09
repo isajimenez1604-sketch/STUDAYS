@@ -1,0 +1,32 @@
+{
+  "note": "Estos son datos de ejemplo para practicar. La API acepta cualquier dato que cumpla sus validaciones; no limita el registro a estos valores.",
+  "register": {
+    "method": "POST",
+    "url": "http://localhost:3000/api/v1/users/register",
+    "body": {
+      "name": "Ana Perez",
+      "email": "ana.prueba@example.com",
+      "password": "clave1234"
+    },
+    "expected": "201 Created. Guarda el user.id que devuelve la respuesta."
+  },
+  "login": {
+    "method": "POST",
+    "url": "http://localhost:3000/api/v1/auth/login",
+    "body": {
+      "email": "ana.prueba@example.com",
+      "password": "clave1234"
+    },
+    "expected": "200 OK si el usuario fue registrado con esos datos."
+  },
+  "createTask": {
+    "method": "POST",
+    "url": "http://localhost:3000/api/v1/tasks",
+    "body": {
+      "userId": 1,
+      "title": "Estudiar para Calculo II"
+    },
+    "note": "Reemplaza userId por el ID numérico devuelto al registrar el usuario.",
+    "expected": "201 Created si userId pertenece a un usuario existente."
+  }
+}

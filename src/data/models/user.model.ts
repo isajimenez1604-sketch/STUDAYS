@@ -1,7 +1,7 @@
 export const USERS_TABLE = "users";
 
 export interface User {
-  id: string;
+  id: number;
   name: string;
   email: string;
   password_hash: string;
