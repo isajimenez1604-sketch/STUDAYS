@@ -1,0 +1,36 @@
+PRUEBAS DE ENDPOINTS CON THUNDER CLIENT
+
+En las tres solicitudes, selecciona el metodo POST y configura Body > JSON.
+Los ejemplos tambien estan en API_EXAMPLES.json. Son datos de practica, no una lista de valores permitidos: cualquier dato que cumpla las validaciones puede registrarse.
+
+1. REGISTRAR USUARIO
+URL: http://localhost:3000/api/v1/users/register
+
+{
+  "name": "Ana Perez",
+  "email": "ana@example.com",
+  "password": "clave1234"
+}
+
+Respuesta esperada: 201 Created. Copia el valor numerico de user.id en la respuesta.
+
+2. INICIAR SESION
+URL: http://localhost:3000/api/v1/auth/login
+
+{
+  "email": "ana@example.com",
+  "password": "clave1234"
+}
+
+3. CREAR TAREA
+Reemplaza 1 por el id numerico que copiaste de la respuesta del registro.
+URL: http://localhost:3000/api/v1/tasks
+
+{
+  "userId": 1,
+  "title": "Estudiar para Calculo II"
+}
+
+La migracion para reiniciar los IDs desde 1 debe ejecutarse en Supabase solo si ya existian usuarios con IDs grandes: src/data/migrations/002_reset_user_ids_from_one.sql. Despues de ejecutarla, vuelve a consultar el id actual del usuario y usa ese valor; no asumas que siempre sera 1.
+
+Para probar un registro exitoso mas de una vez, cambia el correo por uno nuevo. El login debe usar el correo y la contrasena con los que ese usuario se registro.

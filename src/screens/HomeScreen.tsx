@@ -17,8 +17,6 @@ import { RootStackParamList } from "../navigation/AppNavigator";
 
 import { styles } from "../styles/HomeStyles";
 
-import { clearToken } from "../services/session";
-
 type Props = NativeStackScreenProps<RootStackParamList, "Home">;
 
 export default function HomeScreen({ navigation }: Props) {
@@ -31,9 +29,7 @@ export default function HomeScreen({ navigation }: Props) {
         {
           text: "Cerrar sesión",
           style: "destructive",
-          onPress: async () => {
-            await clearToken();
-
+          onPress: () => {
             // reset: borra el historial para que no se pueda volver atrás
             navigation.reset({
               index: 0,

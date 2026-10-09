@@ -38,8 +38,9 @@ export const errorMiddleware = (
   }
 
   console.error("[Unhandled error]", err);
-  res.status(500).json({
-    code: "INTERNAL_SERVER_ERROR",
-    message: "Error interno del servidor",
+  const internal = AppError.internal();
+  res.status(internal.statusCode).json({
+    code: internal.code,
+    message: internal.message,
   });
 };
