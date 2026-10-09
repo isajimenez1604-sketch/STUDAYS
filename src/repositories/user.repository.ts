@@ -1,5 +1,10 @@
 import { supabase } from "../config/supabase";
-import { USERS_TABLE, PublicUser, User } from "../data/models/user.model";
+import {
+  USERS_TABLE,
+  PublicUser,
+  User,
+  UserSummary,
+} from "../data/models/user.model";
 import { AppError } from "../exceptions/errors/app.error";
 import { IUserRepository } from "./interfaces/user.repository.interface";
 
@@ -20,6 +25,21 @@ export class UserRepository implements IUserRepository {
     }
 
     return data as User | null;
+  }
+
+  async findById(id: number): Promise<UserSummary | null> {
+    const { data, error } = await supabase
+      .from(USERS_TABLE)
+      .select("id")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (error) {
+      console.error("[UserRepository.findById]", error);
+      throw AppError.database();
+    }
+
+    return data as UserSummary | null;
   }
 
   async create(input: {
