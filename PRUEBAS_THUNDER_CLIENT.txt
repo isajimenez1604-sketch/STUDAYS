@@ -1,6 +1,6 @@
 PRUEBAS DE ENDPOINTS CON THUNDER CLIENT
 
-En las tres solicitudes, selecciona el metodo POST y configura Body > JSON.
+En las cinco solicitudes, selecciona el metodo POST y configura Body > JSON.
 Los ejemplos tambien estan en API_EXAMPLES.json. Son datos de practica, no una lista de valores permitidos: cualquier dato que cumpla las validaciones puede registrarse.
 
 1. REGISTRAR USUARIO
@@ -31,6 +31,26 @@ URL: http://localhost:3000/api/v1/tasks
   "title": "Estudiar para Calculo II"
 }
 
-La migracion para reiniciar los IDs desde 1 debe ejecutarse en Supabase solo si ya existian usuarios con IDs grandes: src/data/migrations/002_reset_user_ids_from_one.sql. Despues de ejecutarla, vuelve a consultar el id actual del usuario y usa ese valor; no asumas que siempre sera 1.
+4. CREAR CHAT
+Reemplaza 1 por el id numerico del usuario creador.
+URL: http://localhost:3000/api/v1/chats
+
+{
+  "userId": 1,
+  "name": "Grupo de Calculo II"
+}
+
+Copia chat.id de la respuesta para usarlo al unirse.
+
+5. UNIRSE A UN CHAT
+Registra otro usuario y usa su id junto con el chatId devuelto al crear el chat.
+URL: http://localhost:3000/api/v1/chats/join
+
+{
+  "chatId": 1,
+  "userId": 2
+}
+
+Si ya ejecutaste el esquema de la API antes de agregar chats, ejecuta una vez src/data/migrations/003_create_chats.sql en Supabase.
 
 Para probar un registro exitoso mas de una vez, cambia el correo por uno nuevo. El login debe usar el correo y la contrasena con los que ese usuario se registro.

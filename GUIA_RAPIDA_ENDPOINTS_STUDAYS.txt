@@ -1,0 +1,252 @@
+GUIA RAPIDA PARA APRENDER Y EXPLICAR LOS ENDPOINTS DE STUDAYS
+
+Esta guia describe la implementacion actual de la API. No memorices todo: empieza por el resumen de 30 segundos y luego repasa las preguntas.
+
+============================================================
+1. RESUMEN DE 30 SEGUNDOS
+============================================================
+
+STUDAYS tiene cinco endpoints POST bajo el prefijo /api/v1. El registro crea usuarios, el login comprueba sus credenciales, las tareas se asocian a un usuario, y los chats se crean y permiten registrar miembros. La API separa responsabilidades en rutas, controladores, DTOs, servicios y repositorios. Los repositorios consultan Supabase y los errores tipificados se definen en exceptions y se convierten en respuestas HTTP mediante un middleware central.
+
+Flujo de una petición:
+Thunder Client -> ruta -> controlador -> DTO -> servicio -> repositorio -> Supabase
+
+============================================================
+2. LOS CINCO ENDPOINTS
+============================================================
+
+1) Registrar usuario
+POST http://localhost:3000/api/v1/users/register
+Body:
+{
+  "name": "Ana Perez",
+  "email": "ana@example.com",
+  "password": "clave1234"
+}
+Exito: 201 Created. La respuesta incluye el usuario publico y su id numerico.
+El hash de la contrasena no se devuelve.
+
+2) Iniciar sesion
+POST http://localhost:3000/api/v1/auth/login
+Body:
+{
+  "email": "ana@example.com",
+  "password": "clave1234"
+}
+Exito: 200 OK. Devuelve los datos publicos del usuario.
+En esta version no genera token ni mantiene una sesion.
+
+3) Crear tarea
+POST http://localhost:3000/api/v1/tasks
+Body minimo:
+{
+  "userId": 1,
+  "title": "Estudiar para Calculo II"
+}
+Exito: 201 Created. La tarea queda asociada al usuario y comienza con estado pending.
+description y dueDate son opcionales.
+El userId debe ser un numero entero positivo que pertenezca a un usuario.
+
+4) Crear chat
+POST http://localhost:3000/api/v1/chats
+Body:
+{
+  "userId": 1,
+  "name": "Grupo de Calculo II"
+}
+Exito: 201 Created. Devuelve el chat con su id.
+userId debe ser el id de un usuario existente. Ese usuario queda registrado como creador del chat.
+
+5) Unirse a un chat
+POST http://localhost:3000/api/v1/chats/join
+Body:
+{
+  "chatId": 1,
+  "userId": 2
+}
+Exito: 201 Created. Crea la relacion entre el chat y el usuario en chat_members.
+Se necesitan un chat existente y un usuario existente. Usa un usuario distinto del creador y que aun no pertenezca al chat.
+
+============================================================
+3. PREGUNTAS BASICAS
+============================================================
+
+P: Que es un endpoint?
+R: Una direccion de la API que permite realizar una operacion. Se identifica por metodo HTTP y URL, por ejemplo POST /api/v1/tasks.
+
+P: Que significa POST?
+R: Metodo HTTP que normalmente envia datos para crear un recurso o realizar una accion. En esta API, los cinco endpoints usan POST.
+
+P: Para que sirve /api/v1?
+R: Es el prefijo de version de la API. Permite identificar la version actual y facilita publicar una version nueva en el futuro sin cambiar inmediatamente la anterior.
+
+P: Que es un body JSON?
+R: Los datos que el cliente envia en el cuerpo de la peticion, en formato JSON. En Thunder Client se elige Body > JSON.
+
+P: Por que no pongo name o email en Query?
+R: Porque estos endpoints reciben esos datos en el body JSON, no como parametros de URL.
+
+P: Que hago primero para probar?
+R: Registra un usuario, guarda su id numerico, inicia sesion con el mismo correo y contrasena, crea una tarea y un chat con ese id. Para probar unirse, registra un segundo usuario y usa su id junto al id del chat.
+
+P: Siempre sera userId = 1?
+R: No necesariamente. Usa el id real que devuelva el registro. La columna es autoincremental; si la base ya tenia usuarios, los ids pueden ser mayores. Una migracion puede renumerarlos si se requiere.
+
+P: Login entrega un token?
+R: No. En la version actual solo verifica correo y contrasena y devuelve el usuario publico. Por eso los otros endpoints reciben IDs directamente y no requieren autenticacion.
+
+P: Crear un chat tambien crea mensajes?
+R: No. Solo crea el chat. Todavia no hay endpoints para enviar o consultar mensajes.
+
+============================================================
+4. PREGUNTAS SOBRE VALIDACION Y RESPUESTAS
+============================================================
+
+P: Que valida el registro?
+R: Que name tenga al menos 2 caracteres, que email tenga formato de correo, que password tenga al menos 8 caracteres y que el correo no este registrado.
+
+P: Que valida el login?
+R: Que el correo tenga un formato valido y que se haya enviado una contrasena. El servicio compara la contrasena con el hash guardado. Si los datos no coinciden, devuelve credenciales invalidas.
+
+P: Que valida crear una tarea?
+R: userId debe ser entero positivo; title es obligatorio y tiene maximo 120 caracteres; description, si se envia, debe ser texto de maximo 1000 caracteres; dueDate, si se envia, debe ser una fecha valida.
+
+P: Que valida crear un chat?
+R: userId debe ser entero positivo y name debe tener entre 1 y 100 caracteres despues de quitar espacios al inicio y al final. El servicio tambien comprueba que exista el usuario.
+
+P: Que valida unirse a un chat?
+R: chatId y userId deben ser enteros positivos. El servicio comprueba que existan el chat y el usuario, y que el usuario aun no pertenezca al chat.
+
+P: Que significan los codigos HTTP principales?
+R: 200 OK significa que la operacion termino correctamente. 201 Created significa que se creo un recurso o una relacion. 400 Bad Request indica datos invalidos. 401 Unauthorized indica credenciales incorrectas en el login. 404 Not Found indica recurso inexistente. 409 Conflict indica conflicto, como correo repetido o miembro duplicado. 500 indica un problema del servidor o la base de datos.
+
+P: Que respuesta da repetir un correo?
+R: 409 Conflict con el codigo EMAIL_ALREADY_EXISTS.
+
+P: Que respuesta da un login con contrasena incorrecta?
+R: 401 Unauthorized con INVALID_CREDENTIALS.
+
+P: Que pasa si envio name con una sola letra?
+R: El DTO rechaza el body y el middleware responde 400 con VALIDATION_ERROR.
+
+P: Que pasa si el userId de una tarea no existe?
+R: La base de datos detecta que no se cumple la clave foranea y el repositorio lo traduce a USER_NOT_FOUND (404).
+
+P: Que pasa si el usuario ya es creador o miembro e intenta unirse otra vez?
+R: El servicio responde 409 con ALREADY_CHAT_MEMBER. La tabla chat_members tambien tiene una clave primaria compuesta (chat_id, user_id), que impide duplicar la relacion.
+
+P: Donde estan definidos los errores?
+R: En src/exceptions/errors/app.error.ts. AppException guarda code, message y statusCode. src/middlewares/error.middleware.ts transforma esos errores en respuestas JSON.
+
+============================================================
+5. PREGUNTAS DE ARQUITECTURA
+============================================================
+
+P: Que hace la ruta?
+R: Asocia una URL y un metodo HTTP con una funcion del controlador. Por ejemplo, chats.route.ts dirige POST / y POST /join a ChatController.
+
+P: Que hace el controlador?
+R: Recibe req y res, convierte y valida el body mediante el DTO, llama al servicio y devuelve el codigo HTTP y el JSON de respuesta. Si hay una excepcion, la pasa al middleware con next(error).
+
+P: Que es un DTO?
+R: Data Transfer Object. Define y valida los datos que entran a una operacion. Evita pasar directamente al servicio un body arbitrario.
+
+P: Que hace el servicio?
+R: Aplica reglas de negocio. Por ejemplo, ChatService comprueba que existan el usuario y el chat, y evita que alguien se una dos veces.
+
+P: Que hace el repositorio?
+R: Encapsula las consultas a Supabase: buscar, insertar y convertir errores conocidos de la base de datos a errores de la aplicacion.
+
+P: Que hace el modelo?
+R: Describe la forma de los datos usados por la aplicacion, como Chat, ChatMember y Task.
+
+P: Para que sirve el contenedor de Awilix?
+R: Registra controladores, servicios y repositorios, y conecta sus dependencias. El controlador no crea manualmente su servicio; Awilix lo resuelve.
+
+P: Por que separar servicio y repositorio?
+R: El servicio contiene reglas de negocio y el repositorio sabe como hablar con la base. Esa separacion facilita entender, mantener y probar cada parte.
+
+P: Que es una interfaz de repositorio?
+R: Un contrato que declara las operaciones que necesita el servicio, sin obligarlo a depender de los detalles internos de Supabase.
+
+P: Como se propagan los errores?
+R: DTO o servicio lanza AppException; el controlador la envia con next(error); el middleware central decide el status HTTP y el JSON final.
+
+============================================================
+6. PREGUNTAS SOBRE SUPABASE Y EL MODELO DE DATOS
+============================================================
+
+P: Que tablas intervienen?
+R: users guarda cuentas; tasks guarda tareas con user_id; chats guarda nombre y creador; chat_members relaciona usuarios con chats.
+
+P: Que relacion hay entre chat y participantes?
+R: Es muchos-a-muchos: un usuario puede estar en varios chats y un chat puede tener varios usuarios. chat_members es la tabla intermedia.
+
+P: Para que sirve una clave foranea?
+R: Impide guardar una referencia a un usuario o chat inexistente y mantiene la integridad entre tablas.
+
+P: Para que sirve la clave primaria compuesta de chat_members?
+R: La combinacion chat_id + user_id identifica una membresia y evita guardar dos veces al mismo usuario en el mismo chat.
+
+P: El creador se guarda en chat_members?
+R: En la implementacion actual, el creador se guarda en chats.creator_id, no se inserta como fila en chat_members. El servicio lo trata como ya perteneciente y rechaza que se una de nuevo. Si se necesitara listar todos los miembros en un solo lugar, convendria insertar tambien al creador en chat_members al crear el chat.
+
+P: Que significa ON DELETE CASCADE?
+R: Si se elimina un usuario o un chat, la base elimina automaticamente las filas relacionadas que dependen de el. Por ejemplo, al borrar un chat se borran sus membresias.
+
+P: Que significa RLS?
+R: Row Level Security, seguridad a nivel de filas de PostgreSQL/Supabase. Esta configurada en las tablas. El backend usa una clave de servicio para las consultas; esa clave debe quedarse en el servidor y nunca incluirse en la app movil.
+
+P: Por que created_at puede terminar en +00:00?
+R: Supabase devuelve timestamptz en UTC en formato ISO. Representa el mismo instante; la app puede convertirlo a la zona local para mostrarlo.
+
+P: Todos los IDs usan el mismo tipo?
+R: No. users.id, chats.id y sus referencias son BIGINT autoincrementales. En el esquema actual tasks.id es UUID. user_id en tasks sigue siendo BIGINT y referencia a users.id.
+
+============================================================
+7. PREGUNTAS MAS AVANZADAS Y LIMITES ACTUALES
+============================================================
+
+P: Es seguro que el cliente envie userId si no usamos token?
+R: No para produccion. Un cliente puede intentar usar el id de otra persona. Se hace asi temporalmente para simplificar las pruebas. Para asegurar la API, se implementa autenticacion y el servidor obtiene el userId de la identidad verificada, en lugar de confiar en el body.
+
+P: Crear el chat y agregar al creador a chat_members son una sola operacion atomica?
+R: Actualmente no aplica porque el creador solo se guarda en chats.creator_id y no se agrega a chat_members. Si se decide agregarlo a ambas tablas, ambas inserciones deberian ejecutarse dentro de una transaccion para evitar dejar un chat creado sin su membresia de creador si falla la segunda operacion.
+
+P: Hay una condicion de carrera en unirse al chat?
+R: El servicio primero consulta si la membresia existe y luego inserta. Dos peticiones simultaneas podrian pasar la consulta al mismo tiempo; la clave primaria compuesta protege la base y el repositorio traduce el error 23505 a ALREADY_CHAT_MEMBER.
+
+P: Por que no devolver siempre el error detallado de PostgreSQL?
+R: Para no acoplar la API a detalles internos de la base y no exponer informacion tecnica al cliente. El servidor registra el error y devuelve un codigo de aplicacion estable.
+
+P: Que significa DATABASE_ERROR?
+R: La aplicacion recibio un error inesperado de Supabase/base de datos y lo expresa como error tipificado. Los errores conocidos, como clave foranea o dato duplicado, se convierten a errores mas especificos cuando corresponde.
+
+P: Ya tenemos mensajeria completa?
+R: No. Crear chat y unirse al chat solo preparan las entidades y miembros. Faltan endpoints para crear, listar y leer mensajes; no se deben afirmar como implementados.
+
+P: Por que usar POST para /chats/join?
+R: Porque la operacion crea una membresia en chat_members. En una API REST mas estricta podria representarse como POST /chats/:chatId/members, pero el endpoint actual usa un body simple para Thunder Client.
+
+P: Que cambiaria para soportar una app real?
+R: Agregar autenticacion segura, derivar la identidad del usuario en el servidor, impedir que el cliente suplante IDs, definir permisos de creador/miembro, crear endpoints de lectura y mensajes, y probar las operaciones de base de datos con pruebas automatizadas.
+
+============================================================
+8. ORDEN RECOMENDADO PARA DEMOSTRARLO EN THUNDER CLIENT
+============================================================
+
+1. Registrar usuario A. Guarda user.id.
+2. Registrar usuario B. Guarda su user.id.
+3. Iniciar sesion con A y su contrasena.
+4. Crear tarea pasando el userId de A.
+5. Crear chat pasando el userId de A. Guarda chat.id.
+6. Unirse al chat pasando chat.id y el userId de B.
+
+Todas las peticiones usan POST, Content-Type: application/json y Body > JSON.
+El orden importa para las pruebas: la tarea necesita un usuario existente; crear chat necesita un creador existente; unirse necesita un chat y un segundo usuario existentes.
+
+============================================================
+9. FRASE FINAL PARA EXPLICAR EL PROYECTO
+============================================================
+
+"La API tiene cinco endpoints POST versionados en /api/v1. Cada peticion pasa por ruta, controlador, DTO, servicio y repositorio antes de llegar a Supabase. Los datos se validan al entrar y los errores se centralizan en AppException y un middleware global. El login actual solo valida credenciales, sin token, por lo que los IDs enviados por el cliente son una simplificacion para esta etapa y no una proteccion adecuada para produccion."

@@ -30,6 +30,23 @@ export const AppError = {
   userNotFound: () =>
     new AppException("USER_NOT_FOUND", "Usuario no encontrado", 404),
 
+  chatNotFound: () =>
+    new AppException("CHAT_NOT_FOUND", "Chat no encontrado", 404),
+
+  chatOrUserNotFound: () =>
+    new AppException(
+      "CHAT_OR_USER_NOT_FOUND",
+      "El chat o el usuario no existe",
+      404
+    ),
+
+  alreadyChatMember: () =>
+    new AppException(
+      "ALREADY_CHAT_MEMBER",
+      "El usuario ya pertenece a este chat",
+      409
+    ),
+
   routeNotFound: () =>
     new AppException("ROUTE_NOT_FOUND", "Ruta no encontrada", 404),
 
