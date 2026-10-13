@@ -302,24 +302,18 @@ export default function HomeScreen({ navigation }: Props) {
         </TouchableOpacity>
 
 
-        {/* Foro */}
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => navigation.navigate("ChatList")}
-        >
-
+        {/* Espacio reservado para futuras opciones */}
+        <TouchableOpacity style={styles.navItem}>
           <Ionicons
-            name="chatbubbles-outline"
+            name="settings-outline"
             size={23}
             color="#64748B"
           />
 
           <Text style={styles.navText}>
-            Foro
+            Ajustes
           </Text>
-
         </TouchableOpacity>
-
       </View>
 
     </SafeAreaView>

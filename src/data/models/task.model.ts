@@ -1,7 +1,7 @@
 export const TASKS_TABLE = "tasks";
 
 export interface Task {
-  id: string;
+  id: number;
   user_id: number;
   title: string;
   description: string | null;
