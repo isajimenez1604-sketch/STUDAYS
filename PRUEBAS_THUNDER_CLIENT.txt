@@ -1,56 +1,110 @@
-PRUEBAS DE ENDPOINTS CON THUNDER CLIENT
+STUDAYS - PRUEBAS DE API
 
-En las cinco solicitudes, selecciona el metodo POST y configura Body > JSON.
-Los ejemplos tambien estan en API_EXAMPLES.json. Son datos de practica, no una lista de valores permitidos: cualquier dato que cumpla las validaciones puede registrarse.
+BASE:
+http://localhost:3000/api/v1
 
-1. REGISTRAR USUARIO
+1) REGISTRAR USUARIO
+METHOD: POST
 URL: http://localhost:3000/api/v1/users/register
+Headers:
+Content-Type: application/json
 
+Body:
 {
-  "name": "Ana Perez",
-  "email": "ana@example.com",
-  "password": "clave1234"
+  "name": "Ana López",
+  "email": "ana@test.com",
+  "password": "12345678",
+  "confirmPassword": "12345678"
 }
 
-Respuesta esperada: 201 Created. Copia el valor numerico de user.id en la respuesta.
+Respuesta esperada:
+201 Created
+{
+  "message": "Usuario registrado",
+  "user": {
+    "id": 1,
+    "name": "Ana López",
+    "email": "ana@test.com",
+    "created_at": "..."
+  }
+}
 
-2. INICIAR SESION
+2) LOGIN
+METHOD: POST
 URL: http://localhost:3000/api/v1/auth/login
+Headers:
+Content-Type: application/json
 
+Body:
 {
-  "email": "ana@example.com",
-  "password": "clave1234"
+  "email": "ana@test.com",
+  "password": "12345678"
 }
 
-3. CREAR TAREA
-Reemplaza 1 por el id numerico que copiaste de la respuesta del registro.
+Respuesta esperada:
+200 OK
+{
+  "message": "Inicio de sesión exitoso",
+  "user": {
+    "id": 1,
+    "name": "Ana López",
+    "email": "ana@test.com",
+    "created_at": "..."
+  }
+}
+
+3) CREAR TAREA
+METHOD: POST
 URL: http://localhost:3000/api/v1/tasks
+Headers:
+Content-Type: application/json
 
+Body:
 {
   "userId": 1,
-  "title": "Estudiar para Calculo II"
+  "title": "Estudiar examen",
+  "description": "Repasar temas de matemáticas",
+  "dueDate": "2026-10-20T18:00:00.000Z"
 }
 
-4. CREAR CHAT
-Reemplaza 1 por el id numerico del usuario creador.
-URL: http://localhost:3000/api/v1/chats
-
+Respuesta esperada:
+201 Created
 {
-  "userId": 1,
-  "name": "Grupo de Calculo II"
+  "message": "Tarea creada",
+  "task": {
+    "id": 1,
+    "user_id": 1,
+    "title": "Estudiar examen",
+    "description": "Repasar temas de matemáticas",
+    "due_date": "2026-10-20T18:00:00.000Z",
+    "status": "pending",
+    "created_at": "..."
+  }
 }
 
-Copia chat.id de la respuesta para usarlo al unirse.
+VALIDACIONES IMPORTANTES:
+- Registro exige name >= 2 caracteres
+- Email válido
+- Contraseña >= 8 caracteres
+- login requiere email y password
+- task requiere userId > 0, title obligatorio, dueDate si viene debe ser fecha válida
 
-5. UNIRSE A UN CHAT
-Registra otro usuario y usa su id junto con el chatId devuelto al crear el chat.
-URL: http://localhost:3000/api/v1/chats/join
+ERRORES COMUNES:
+- 400: VALIDATION_ERROR (datos inválidos)
+- 401: INVALID_CREDENTIALS (correo o contraseña incorrectos)
+- 409: EMAIL_ALREADY_EXISTS (correo duplicado)
+- 404: USER_NOT_FOUND (si la tarea apunta a un usuario inexistente)
+- 500: DATABASE_ERROR
 
-{
-  "chatId": 1,
-  "userId": 2
-}
+PREGUNTAS RAPIDAS:
+P: ¿Qué puerto usa la API?
+R: 3000 por defecto (configurable con PORT).
 
-Si ya ejecutaste el esquema de la API antes de agregar chats, ejecuta una vez src/data/migrations/003_create_chats.sql en Supabase.
+P: ¿Necesito correr un servidor antes?
+R: Sí, primero inician la API con: npx tsx src/main.ts o npm run api
 
-Para probar un registro exitoso mas de una vez, cambia el correo por uno nuevo. El login debe usar el correo y la contrasena con los que ese usuario se registro.
+P: ¿Dónde está la BD?
+R: En Supabase, con variables en .env.
+
+P: ¿Se prueban desde móvil o web?
+R: La API es backend; se consume desde frontend o Thunder Client.
