@@ -39,6 +39,20 @@ export const AppError = {
       "El chat o el usuario no existe",
       404
     ),
+forumPostNotFound: () =>
+  new AppException(
+    "FORUM_POST_NOT_FOUND",
+    "Publicación no encontrada",
+    404
+  ),
+
+forumPostOrUserNotFound: () =>
+  new AppException(
+    "FORUM_POST_OR_USER_NOT_FOUND",
+    "La publicación o el usuario no existe",
+    404
+  ),
+
 
   alreadyChatMember: () =>
     new AppException(

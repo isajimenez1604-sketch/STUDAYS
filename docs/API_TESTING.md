@@ -111,3 +111,58 @@ Registra un segundo usuario y usa su ID junto con el ID de chat devuelto al crea
 El catálogo central de errores tipificados está en `src/exceptions/errors/app.error.ts`, y el middleware de `src/middlewares/error.middleware.ts` los convierte en respuestas HTTP.
 
 > En esta versión de aprendizaje, el login no entrega tokens y crear tareas no requiere autenticación: el cliente envía `userId` en el body. No es seguro para producción porque cualquiera podría intentar crear tareas para otro usuario.
+
+## 6. Crear publicación del foro
+
+**POST** `http://localhost:3000/api/v1/forum/posts`
+
+Crea una publicación para el foro. El usuario indicado debe existir en la base de datos.
+
+Encabezado:
+
+`Content-Type: application/json`
+
+Body en formato JSON:
+
+```json
+{
+  "userId": 1,
+  "title": "Consejos para estudiar",
+  "content": "¿Qué técnicas de estudio recomiendan para los exámenes?"
+}
+```
+
+Respuesta esperada: **201 Created**, con un mensaje de confirmación y los datos de la publicación creada.
+
+Validaciones:
+- `userId` debe ser un entero positivo correspondiente a un usuario existente.
+- `title` es obligatorio y admite hasta 150 caracteres.
+- `content` es obligatorio y admite hasta 5000 caracteres.
+
+## 7. Agregar un comentario al foro
+
+**POST** `http://localhost:3000/api/v1/forum/posts/1/comments`
+
+Agrega un comentario a una publicación existente. Sustituye `1` por el ID real de la publicación.
+
+Encabezado:
+
+`Content-Type: application/json`
+
+Body en formato JSON:
+
+```json
+{
+  "userId": 2,
+  "content": "Recomiendo estudiar con ejercicios prácticos."
+}
+```
+
+Respuesta esperada: **201 Created**, con un mensaje de confirmación y los datos del comentario creado.
+
+Validaciones:
+- `userId` debe corresponder a un usuario existente.
+- La publicación indicada debe existir.
+- `content` es obligatorio y admite hasta 2000 caracteres.
+
+Si la publicación o el usuario no existen, la API debe devolver un error apropiado.

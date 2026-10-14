@@ -1,3 +1,4 @@
+
 import React from "react";
 
 import {
@@ -25,12 +26,14 @@ export default function HomeScreen({ navigation }: Props) {
       "Cerrar sesión",
       "¿Seguro que quieres cerrar tu sesión?",
       [
-        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Cancelar",
+          style: "cancel",
+        },
         {
           text: "Cerrar sesión",
           style: "destructive",
           onPress: () => {
-            // reset: borra el historial para que no se pueda volver atrás
             navigation.reset({
               index: 0,
               routes: [{ name: "Login" }],
@@ -43,17 +46,13 @@ export default function HomeScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.container}>
-
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-
         {/* Encabezado */}
         <View style={styles.header}>
-
           <View>
-
             <Text style={styles.greeting}>
               ¡Hola!
             </Text>
@@ -61,47 +60,35 @@ export default function HomeScreen({ navigation }: Props) {
             <Text style={styles.userName}>
               Bienvenido a STUDAYS
             </Text>
-
           </View>
 
-
           <View style={styles.headerActions}>
-
             <TouchableOpacity
               style={styles.notificationButton}
             >
-
               <Ionicons
                 name="notifications-outline"
                 size={24}
                 color="#1F2937"
               />
-
             </TouchableOpacity>
-
 
             <TouchableOpacity
               style={styles.notificationButton}
               onPress={handleLogout}
               accessibilityLabel="Cerrar sesión"
             >
-
               <Ionicons
                 name="log-out-outline"
                 size={24}
                 color="#1F2937"
               />
-
             </TouchableOpacity>
-
           </View>
-
         </View>
-
 
         {/* Resumen */}
         <View style={styles.summaryCard}>
-
           <Text style={styles.summaryTitle}>
             Tus actividades pendientes
           </Text>
@@ -113,33 +100,24 @@ export default function HomeScreen({ navigation }: Props) {
           <Text style={styles.summaryText}>
             actividades por completar
           </Text>
-
         </View>
-
 
         {/* Próxima entrega */}
         <Text style={styles.sectionTitle}>
           Próxima entrega
         </Text>
 
-
         <View style={styles.deliveryCard}>
-
           <View style={styles.deliveryRow}>
-
             <View style={styles.deliveryIcon}>
-
               <Ionicons
                 name="document-text-outline"
                 size={24}
                 color="#3B82F6"
               />
-
             </View>
 
-
             <View style={styles.deliveryInfo}>
-
               <Text style={styles.deliveryTitle}>
                 Proyecto de Programación
               </Text>
@@ -151,25 +129,18 @@ export default function HomeScreen({ navigation }: Props) {
               <Text style={styles.deliveryDate}>
                 Mañana
               </Text>
-
             </View>
-
           </View>
-
         </View>
-
 
         {/* Para hoy */}
         <Text style={styles.sectionTitle}>
           Para hoy
         </Text>
 
-
         {/* Tarea 1 */}
         <View style={styles.taskCard}>
-
           <View style={styles.taskRow}>
-
             <Ionicons
               name="ellipse-outline"
               size={23}
@@ -180,17 +151,12 @@ export default function HomeScreen({ navigation }: Props) {
             <Text style={styles.taskText}>
               Estudiar para el examen
             </Text>
-
           </View>
-
         </View>
-
 
         {/* Tarea 2 */}
         <View style={styles.taskCard}>
-
           <View style={styles.taskRow}>
-
             <Ionicons
               name="ellipse-outline"
               size={23}
@@ -201,17 +167,12 @@ export default function HomeScreen({ navigation }: Props) {
             <Text style={styles.taskText}>
               Entregar proyecto
             </Text>
-
           </View>
-
         </View>
-
 
         {/* Tarea 3 */}
         <View style={styles.taskCard}>
-
           <View style={styles.taskRow}>
-
             <Ionicons
               name="ellipse-outline"
               size={23}
@@ -222,20 +183,14 @@ export default function HomeScreen({ navigation }: Props) {
             <Text style={styles.taskText}>
               Revisar calendario
             </Text>
-
           </View>
-
         </View>
-
       </ScrollView>
-
 
       {/* Navegación inferior */}
       <View style={styles.bottomNav}>
-
         {/* Inicio */}
         <TouchableOpacity style={styles.navItem}>
-
           <Ionicons
             name="home"
             size={23}
@@ -250,13 +205,10 @@ export default function HomeScreen({ navigation }: Props) {
           >
             Inicio
           </Text>
-
         </TouchableOpacity>
-
 
         {/* Tareas */}
         <TouchableOpacity style={styles.navItem}>
-
           <Ionicons
             name="checkmark-circle-outline"
             size={23}
@@ -266,13 +218,10 @@ export default function HomeScreen({ navigation }: Props) {
           <Text style={styles.navText}>
             Tareas
           </Text>
-
         </TouchableOpacity>
-
 
         {/* Calendario */}
         <TouchableOpacity style={styles.navItem}>
-
           <Ionicons
             name="calendar-outline"
             size={23}
@@ -282,13 +231,10 @@ export default function HomeScreen({ navigation }: Props) {
           <Text style={styles.navText}>
             Calendario
           </Text>
-
         </TouchableOpacity>
-
 
         {/* Planificador */}
         <TouchableOpacity style={styles.navItem}>
-
           <Ionicons
             name="time-outline"
             size={23}
@@ -298,16 +244,14 @@ export default function HomeScreen({ navigation }: Props) {
           <Text style={styles.navText}>
             Planificador
           </Text>
-
         </TouchableOpacity>
-
 
         {/* Foro */}
         <TouchableOpacity
           style={styles.navItem}
-          onPress={() => navigation.navigate("ChatList")}
+          onPress={() => navigation.navigate("Forum")}
+          accessibilityLabel="Abrir foro"
         >
-
           <Ionicons
             name="chatbubbles-outline"
             size={23}
@@ -317,11 +261,9 @@ export default function HomeScreen({ navigation }: Props) {
           <Text style={styles.navText}>
             Foro
           </Text>
-
         </TouchableOpacity>
-
       </View>
-
     </SafeAreaView>
   );
 }
+
