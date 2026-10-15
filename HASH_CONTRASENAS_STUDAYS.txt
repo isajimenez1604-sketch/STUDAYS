@@ -1,0 +1,34 @@
+STUDAYS - HASH DE CONTRASENAS (RESUMEN)
+
+En este proyecto, la contrasena no se guarda como texto normal. Al registrarse:
+
+1. El backend recibe la contrasena por HTTPS en produccion (en desarrollo puede usarse HTTP local).
+2. UserService usa bcryptjs para generar un hash con 10 rondas de trabajo.
+3. UserRepository guarda ese hash en la columna password_hash de Supabase.
+4. La respuesta de registro devuelve los datos publicos del usuario, nunca password_hash.
+
+Al iniciar sesion:
+
+1. El backend busca al usuario por email.
+2. bcrypt compara la contrasena recibida con el hash guardado.
+3. Si coinciden, devuelve los datos publicos del usuario; si no, responde con credenciales invalidas.
+4. Si el email no existe, compara contra un hash ficticio para reducir diferencias de tiempo que puedan revelar si un correo esta registrado.
+
+PREGUNTAS RAPIDAS
+
+P: ¿El hash se puede revertir para recuperar la contrasena?
+R: No. bcrypt es una funcion unidireccional; en el login se verifica comparando la contrasena ingresada con el hash.
+
+P: ¿Por que no guardar la contrasena normal?
+R: Si la base de datos se expone, los hashes evitan revelar directamente las contrasenas originales.
+
+P: ¿El backend devuelve el hash?
+R: No. Registro y login devuelven los datos publicos del usuario, sin password_hash.
+
+P: ¿Que ocurre si la contrasena no coincide?
+R: El login responde 401 INVALID_CREDENTIALS.
+
+Archivos principales:
+- src/services/user.service.ts: genera el hash con bcryptjs y 10 rondas.
+- src/services/auth.service.ts: verifica la contrasena con bcrypt.compare.
+- src/repositories/user.repository.ts: guarda password_hash y excluye ese campo de la respuesta publica.
