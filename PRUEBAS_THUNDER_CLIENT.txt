@@ -1,7 +1,14 @@
-STUDAYS - PRUEBAS DE API
+STUDAYS - PRUEBAS DE API CON THUNDER CLIENT
 
-BASE:
+BASE URL:
 http://localhost:3000/api/v1
+
+ENDPOINTS DISPONIBLES (5):
+POST   /users/register
+POST   /auth/login
+POST   /tasks
+GET    /forum/posts
+POST   /forum/posts
 
 1) REGISTRAR USUARIO
 METHOD: POST
@@ -11,25 +18,27 @@ Content-Type: application/json
 
 Body:
 {
-  "name": "Ana López",
+  "name": "Ana Lopez",
   "email": "ana@test.com",
   "password": "12345678",
   "confirmPassword": "12345678"
 }
 
-Respuesta esperada:
-201 Created
+Respuesta esperada: 201 Created
 {
   "message": "Usuario registrado",
   "user": {
     "id": 1,
-    "name": "Ana López",
+    "name": "Ana Lopez",
     "email": "ana@test.com",
     "created_at": "..."
   }
 }
 
-2) LOGIN
+Guarda user.id. confirmPassword es opcional; si se envia, debe coincidir con
+password.
+
+2) INICIAR SESION
 METHOD: POST
 URL: http://localhost:3000/api/v1/auth/login
 Headers:
@@ -41,13 +50,12 @@ Body:
   "password": "12345678"
 }
 
-Respuesta esperada:
-200 OK
+Respuesta esperada: 200 OK
 {
   "message": "Inicio de sesión exitoso",
   "user": {
     "id": 1,
-    "name": "Ana López",
+    "name": "Ana Lopez",
     "email": "ana@test.com",
     "created_at": "..."
   }
@@ -63,48 +71,94 @@ Body:
 {
   "userId": 1,
   "title": "Estudiar examen",
-  "description": "Repasar temas de matemáticas",
+  "description": "Repasar temas de matematicas",
   "dueDate": "2026-10-20T18:00:00.000Z"
 }
 
-Respuesta esperada:
-201 Created
+Respuesta esperada: 201 Created
 {
   "message": "Tarea creada",
   "task": {
     "id": 1,
     "user_id": 1,
     "title": "Estudiar examen",
-    "description": "Repasar temas de matemáticas",
+    "description": "Repasar temas de matematicas",
     "due_date": "2026-10-20T18:00:00.000Z",
     "status": "pending",
     "created_at": "..."
   }
 }
 
-VALIDACIONES IMPORTANTES:
-- Registro exige name >= 2 caracteres
-- Email válido
-- Contraseña >= 8 caracteres
-- login requiere email y password
-- task requiere userId > 0, title obligatorio, dueDate si viene debe ser fecha válida
+userId debe ser el ID numerico de un usuario existente. description y dueDate
+son opcionales.
 
-ERRORES COMUNES:
-- 400: VALIDATION_ERROR (datos inválidos)
-- 401: INVALID_CREDENTIALS (correo o contraseña incorrectos)
-- 409: EMAIL_ALREADY_EXISTS (correo duplicado)
-- 404: USER_NOT_FOUND (si la tarea apunta a un usuario inexistente)
-- 500: DATABASE_ERROR
+4) LISTAR PUBLICACIONES DEL FORO
+METHOD: GET
+URL: http://localhost:3000/api/v1/forum/posts
 
-PREGUNTAS RAPIDAS:
-P: ¿Qué puerto usa la API?
-R: 3000 por defecto (configurable con PORT).
+No requiere body.
 
-P: ¿Necesito correr un servidor antes?
-R: Sí, primero inician la API con: npx tsx src/main.ts o npm run api
+Respuesta esperada: 200 OK
+{
+  "message": "Publicaciones obtenidas correctamente",
+  "posts": [
+    {
+      "id": 1,
+      "user_id": 1,
+      "title": "Consejos para el examen",
+      "content": "Compartamos material de estudio.",
+      "created_at": "..."
+    }
+  ]
+}
 
-P: ¿Dónde está la BD?
-R: En Supabase, con variables en .env.
+5) CREAR PUBLICACION EN EL FORO
+METHOD: POST
+URL: http://localhost:3000/api/v1/forum/posts
+Headers:
+Content-Type: application/json
 
-P: ¿Se prueban desde móvil o web?
-R: La API es backend; se consume desde frontend o Thunder Client.
+Body:
+{
+  "userId": 1,
+  "title": "Consejos para el examen",
+  "content": "Compartamos material de estudio."
+}
+
+Respuesta esperada: 201 Created
+{
+  "message": "Publicación creada correctamente",
+  "post": {
+    "id": 1,
+    "user_id": 1,
+    "title": "Consejos para el examen",
+    "content": "Compartamos material de estudio.",
+    "created_at": "..."
+  }
+}
+
+Guarda post.id para consultar y comentar esa publicacion. title admite hasta
+150 caracteres y content hasta 5000 caracteres; ambos son obligatorios.
+
+VALIDACIONES PRINCIPALES:
+- Registro: name de al menos 2 caracteres, email valido y password de al menos
+  8 caracteres.
+- Login: email valido y password obligatoria.
+- Tareas: userId entero positivo; title obligatorio (maximo 120 caracteres);
+  description opcional (maximo 1000); dueDate opcional y con fecha valida.
+- Chats: userId entero positivo y name obligatorio (maximo 100 caracteres).
+- Unirse a chat: chatId y userId enteros positivos.
+- Publicaciones: userId entero positivo, title obligatorio (maximo 150) y
+  content obligatorio (maximo 5000).
+- Comentarios: postId y userId enteros positivos; content obligatorio
+  (maximo 2000).
+
+ERRORES:
+- 400: VALIDATION_ERROR o INVALID_JSON, cuando los datos no son validos.
+- 401: INVALID_CREDENTIALS, cuando el email o la contrasena de login no
+  coinciden.
+- 404: recurso/endpoint no encontrado (por ejemplo USER_NOT_FOUND,
+  CHAT_NOT_FOUND, FORUM_POST_NOT_FOUND o ROUTE_NOT_FOUND, segun el caso).
+- 409: EMAIL_ALREADY_EXISTS, cuando se registra un email ya utilizado.
+- 500: DATABASE_ERROR o INTERNAL_SERVER_ERROR, ante un error de base de datos
+  o un error inesperado del servidor.
