@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 
 import {
@@ -13,14 +14,12 @@ import {
 } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
-
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import { RootStackParamList } from "../navigation/AppNavigator";
-
 import { styles } from "../styles/LoginStyles";
-
 import { ApiError, loginUser } from "../services/authApi";
+import { setCurrentUser } from "../services/currentUser";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
 
@@ -31,9 +30,7 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export default function LoginScreen({ navigation }: Props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
   const [passwordVisible, setPasswordVisible] = useState(false);
-
   const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [generalError, setGeneralError] = useState("");
@@ -43,14 +40,16 @@ export default function LoginScreen({ navigation }: Props) {
 
     setGeneralError("");
 
-    // Validación básica antes de llamar a la API
     const errors: FieldErrors = {};
+
     if (!EMAIL_REGEX.test(email.trim())) {
       errors.email = "El correo electrónico no es válido";
     }
+
     if (password.length === 0) {
       errors.password = "La contraseña es obligatoria";
     }
+
     setFieldErrors(errors);
 
     if (Object.keys(errors).length > 0) return;
@@ -58,12 +57,15 @@ export default function LoginScreen({ navigation }: Props) {
     setLoading(true);
 
     try {
-      await loginUser({
+      const response = await loginUser({
         email: email.trim(),
         password,
       });
 
-      // replace: así el botón "atrás" no vuelve al login
+      // Guardar los datos del usuario autenticado.
+      setCurrentUser(response.user);
+
+      // Ir a Home sin regresar al login con el botón atrás.
       navigation.replace("Home");
     } catch (error) {
       if (error instanceof ApiError) {
@@ -91,31 +93,22 @@ export default function LoginScreen({ navigation }: Props) {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Logo */}
           <View style={styles.header}>
             <Text style={styles.logoIcon}>🎓</Text>
-
             <Text style={styles.logo}>STUDAYS</Text>
-
             <Text style={styles.subtitle}>
               Organiza. Planifica. Aprende.
             </Text>
           </View>
 
-          {/* Bienvenida */}
-          <Text style={styles.welcome}>
-            ¡Bienvenido! 👋
-          </Text>
+          <Text style={styles.welcome}>¡Bienvenido! 👋</Text>
 
           <Text style={styles.description}>
             Inicia sesión para continuar
           </Text>
 
-          {/* Correo */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>
-              Correo electrónico
-            </Text>
+            <Text style={styles.label}>Correo electrónico</Text>
 
             <View
               style={[
@@ -138,15 +131,14 @@ export default function LoginScreen({ navigation }: Props) {
             </View>
 
             {fieldErrors.email && (
-              <Text style={styles.errorText}>{fieldErrors.email}</Text>
+              <Text style={styles.errorText}>
+                {fieldErrors.email}
+              </Text>
             )}
           </View>
 
-          {/* Contraseña */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>
-              Contraseña
-            </Text>
+            <Text style={styles.label}>Contraseña</Text>
 
             <View
               style={[
@@ -179,16 +171,18 @@ export default function LoginScreen({ navigation }: Props) {
             </View>
 
             {fieldErrors.password && (
-              <Text style={styles.errorText}>{fieldErrors.password}</Text>
+              <Text style={styles.errorText}>
+                {fieldErrors.password}
+              </Text>
             )}
           </View>
 
-          {/* Error general (credenciales, red, servidor) */}
           {generalError !== "" && (
-            <Text style={styles.generalError}>{generalError}</Text>
+            <Text style={styles.generalError}>
+              {generalError}
+            </Text>
           )}
 
-          {/* Botón */}
           <TouchableOpacity
             style={[styles.button, loading && styles.buttonDisabled]}
             onPress={handleLogin}
@@ -204,7 +198,6 @@ export default function LoginScreen({ navigation }: Props) {
             )}
           </TouchableOpacity>
 
-          {/* Recuperar contraseña */}
           <TouchableOpacity
             style={styles.forgotPassword}
             onPress={() => {}}
@@ -214,7 +207,6 @@ export default function LoginScreen({ navigation }: Props) {
             </Text>
           </TouchableOpacity>
 
-          {/* Registro */}
           <View style={styles.registerContainer}>
             <Text style={styles.registerQuestion}>
               ¿No tienes una cuenta?
@@ -230,7 +222,6 @@ export default function LoginScreen({ navigation }: Props) {
           </View>
         </ScrollView>
 
-        {/* Decoración inferior */}
         <View style={styles.bottomDecorationLight} />
         <View style={styles.bottomDecoration} />
       </KeyboardAvoidingView>

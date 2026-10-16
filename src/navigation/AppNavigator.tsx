@@ -4,23 +4,32 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import LoginScreen from "../screens/LoginScreen";
 import RegisterScreen from "../screens/RegisterScreen";
 import HomeScreen from "../screens/HomeScreen";
+import ForumScreen from "../screens/ForumScreen";
+import ChatListScreen from "../screens/ChatListScreen";
+import ChatScreen from "../screens/ChatScreen";
 
 export type RootStackParamList = {
-  Login: undefined;
-  Register: undefined;
-  Home: undefined;
+Login: undefined;
+Register: undefined;
+Home: undefined;
+ChatList: undefined;
+Chat: { name: string };
+Forum: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function AppNavigator() {
-  return (
-    <NavigationContainer>
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Login" component={LoginScreen} />
-      <Stack.Screen name="Register" component={RegisterScreen} />
-      <Stack.Screen name="Home" component={HomeScreen} />
-    </Stack.Navigator>
-    </NavigationContainer>
-  );
+return (
+<NavigationContainer>
+<Stack.Navigator screenOptions={{ headerShown: false }}>
+<Stack.Screen name="Login" component={LoginScreen} />
+<Stack.Screen name="Register" component={RegisterScreen} />
+<Stack.Screen name="Home" component={HomeScreen} />
+<Stack.Screen name="ChatList" component={ChatListScreen} />
+<Stack.Screen name="Chat" component={ChatScreen} />
+<Stack.Screen name="Forum" component={ForumScreen} />
+</Stack.Navigator>
+</NavigationContainer>
+);
 }
