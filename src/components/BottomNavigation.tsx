@@ -7,7 +7,7 @@ import { RootStackParamList } from "../navigation/AppNavigator";
 import { AppUser } from "../services/authApi";
 import { styles } from "../styles/HomeStyles";
 
-type AppSection = "Home" | "Tasks" | "Calendar" | "Planner" | "ChatList";
+type AppSection = "Home" | "Tasks" | "Calendar" | "Planner" | "Forum";
 
 type Props = {
   active: AppSection;
@@ -24,7 +24,7 @@ const sections: {
   { name: "Tasks", label: "Tareas", icon: "checkmark-circle-outline" },
   { name: "Calendar", label: "Calendario", icon: "calendar-outline" },
   { name: "Planner", label: "Planificador", icon: "time-outline" },
-  { name: "ChatList", label: "Foro", icon: "chatbubbles" },
+  { name: "Forum", label: "Foro", icon: "chatbubbles" },
 ];
 
 export default function BottomNavigation({
@@ -42,7 +42,10 @@ export default function BottomNavigation({
             key={section.name}
             style={styles.navItem}
             onPress={() => {
-              if (section.name !== "Planner") {
+              if (section.name === "Planner") return;
+              if (section.name === "Forum") {
+                navigation.replace("Forum", { user });
+              } else {
                 navigation.replace(section.name, { user });
               }
             }}

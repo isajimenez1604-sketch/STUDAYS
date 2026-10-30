@@ -125,7 +125,7 @@ export default function ChatListScreen({ navigation, route }: Props) {
       </ScrollView>
 
       <BottomNavigation
-        active="ChatList"
+        active="Forum"
         navigation={navigation}
         user={user}
       />

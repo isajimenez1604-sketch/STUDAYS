@@ -1,23 +1,4 @@
-STUDAYS - GUIA RAPIDA DE ENDPOINTS
-
-Resumen:
-La API actual solo expone 3 endpoints principales:
-- POST /api/v1/users/register
-- POST /api/v1/auth/login
-- POST /api/v1/tasks
-
-1) REGISTRO
-Ruta: POST /api/v1/users/register
-Descripcion: crea un usuario nuevo.
-Body:
-{
-  "name": "Ana López",
-  "email": "ana@test.com",
-  "password": "12345678",
-  "confirmPassword": "12345678"
-}
-
-Que valida:
+1) Que valida:
 - nombre con al menos 2 letras
 - email correcto
 - password con mínimo 8 caracteres
@@ -27,13 +8,6 @@ Respuesta:
 200/201 con el usuario creado sin la contraseña.
 
 2) LOGIN
-Ruta: POST /api/v1/auth/login
-Descripcion: valida credenciales y devuelve el usuario.
-Body:
-{
-  "email": "ana@test.com",
-  "password": "12345678"
-}
 
 Que valida:
 - email válido
@@ -44,15 +18,6 @@ Respuesta:
 - 401 INVALID_CREDENTIALS si falla
 
 3) TAREAS
-Ruta: POST /api/v1/tasks
-Descripcion: crea una tarea asociada a un usuario.
-Body:
-{
-  "userId": 1,
-  "title": "Estudiar examen",
-  "description": "Repasar temas de matemáticas",
-  "dueDate": "2026-10-20T18:00:00.000Z"
-}
 
 Que valida:
 - userId válido y positivo
@@ -62,40 +27,3 @@ Que valida:
 
 Respuesta:
 201 Created con la tarea creada.
-
-PREGUNTAS BASICAS Y RESPUESTAS:
-P: ¿La API funciona?
-R: La lógica y el montaje de endpoints está bien, y la app compila con TypeScript. Para que funcione en la práctica, necesita un .env con SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY, y la base de datos creada en Supabase.
-
-P: ¿Qué pasa si el email ya existe?
-R: El backend responde 409 con EMAIL_ALREADY_EXISTS.
-
-P: ¿Qué pasa si la contraseña falla?
-R: 401 INVALID_CREDENTIALS.
-
-P: ¿Puede crear una tarea para un usuario inexistente?
-R: No. La base responde 404 USER_NOT_FOUND.
-
-P: ¿Los endpoints son públicos?
-R: Sí, en esta versión no hay JWT ni autenticación por token. La seguridad está en el backend y en Supabase.
-
-P: ¿Qué archivo levanta la API?
-R: src/main.ts ejecuta la app Express.
-
-P: ¿Qué hace la ruta /api/v1?
-R: Es la base del backend y desde ahí se montan todos los módulos.
-
-P: ¿Se pueden probar desde el navegador?
-R: No directamente para POST con JSON; se recomienda Thunder Client, Postman o curl.
-
-P: ¿Qué necesito para correrlo?
-R: Node, dependencias instaladas, .env correcto y Supabase activo.
-
-P: ¿Dónde va la configuración de Supabase?
-R: En .env y en src/config/env.ts / src/config/supabase.ts
-
-P: ¿Qué es mejor para desarrollarlos?
-R: Usar Thunder Client para pruebas rápidas, y una vez validado, consumir desde React Native.
-
-NOTA FINAL:
-La estructura está lista y los endpoints están bien definidos; lo que falta para afirmar que funciona 100% en producción es tener la DB real configurada y hacer la prueba real con Supabase activo.

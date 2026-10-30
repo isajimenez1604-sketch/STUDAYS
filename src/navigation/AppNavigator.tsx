@@ -8,6 +8,7 @@ import TasksScreen from "../screens/TasksScreen";
 import CalendarScreen from "../screens/CalendarScreen";
 import ChatListScreen from "../screens/ChatListScreen";
 import ChatScreen from "../screens/ChatScreen";
+import ForumScreen from "../screens/ForumScreen";
 import { AppUser } from "../services/authApi";
 
 export type RootStackParamList = {
@@ -18,6 +19,7 @@ export type RootStackParamList = {
   Calendar: { user: AppUser };
   ChatList: { user: AppUser };
   Chat: { name: string; user: AppUser };
+  Forum: { user: AppUser };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -33,6 +35,7 @@ export default function AppNavigator() {
       <Stack.Screen name="Calendar" component={CalendarScreen} />
       <Stack.Screen name="ChatList" component={ChatListScreen} />
       <Stack.Screen name="Chat" component={ChatScreen} />
+      <Stack.Screen name="Forum" component={ForumScreen} />
     </Stack.Navigator>
     </NavigationContainer>
   );

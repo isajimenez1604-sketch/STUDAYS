@@ -21,6 +21,7 @@ import { RootStackParamList } from "../navigation/AppNavigator";
 import { styles } from "../styles/LoginStyles";
 
 import { ApiError, loginUser } from "../services/authApi";
+import { setCurrentUser } from "../services/currentUser";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
 
@@ -62,6 +63,8 @@ export default function LoginScreen({ navigation }: Props) {
         email: email.trim(),
         password,
       });
+
+      setCurrentUser(user);
 
       // replace: así el botón "atrás" no vuelve al login
       navigation.replace("Home", { user });
