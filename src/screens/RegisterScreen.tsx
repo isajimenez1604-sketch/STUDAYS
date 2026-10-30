@@ -84,7 +84,7 @@ export default function RegisterScreen({ navigation }: Props) {
     setLoading(true);
 
     try {
-      await registerUser({
+      const user = await registerUser({
         name: name.trim(),
         email: email.trim(),
         password,
@@ -93,7 +93,7 @@ export default function RegisterScreen({ navigation }: Props) {
 
       Alert.alert(
         "¡Cuenta creada!",
-        "Tu cuenta se registró correctamente.",
+        `Tu cuenta se registró correctamente, ${user.name}.`,
         [
           {
             text: "Continuar",

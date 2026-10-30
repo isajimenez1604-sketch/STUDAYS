@@ -1,150 +1,111 @@
 import React, { useState } from "react";
-
 import {
-  View,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
-  SafeAreaView,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
+  View,
 } from "react-native";
-
 import { Ionicons } from "@expo/vector-icons";
-
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import { RootStackParamList } from "../navigation/AppNavigator";
-
-import { styles } from "../styles/ChatStyles";
+import { chatStyles } from "../styles/ChatStyles";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Chat">;
+type Message = { text: string; sent: boolean };
 
 export default function ChatScreen({ navigation, route }: Props) {
   const { name } = route.params;
-
   const [message, setMessage] = useState("");
+  const [messages, setMessages] = useState<Message[]>([
+    { text: "¿Ya viste el horario de exámenes?", sent: false },
+    { text: "Sí, Cálculo II quedó el jueves", sent: true },
+    { text: "¿Estudiamos mañana en la biblioteca?", sent: false },
+    { text: "Dale, a las 3pm", sent: true },
+  ]);
+
+  const sendMessage = () => {
+    const text = message.trim();
+    if (!text) return;
+    setMessages((currentMessages) => [
+      ...currentMessages,
+      { text, sent: true },
+    ]);
+    setMessage("");
+  };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={chatStyles.container}>
       <KeyboardAvoidingView
-        style={styles.keyboardView}
+        style={chatStyles.keyboardView}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-
-        {/* Encabezado */}
-        <View style={styles.header}>
-
+        <View style={chatStyles.header}>
           <TouchableOpacity
-            style={styles.backButton}
+            style={chatStyles.backButton}
             onPress={() => navigation.goBack()}
+            accessibilityLabel="Volver a chats"
           >
-
-            <Ionicons
-              name="chevron-back"
-              size={26}
-              color="#1F2937"
-            />
-
+            <Ionicons name="chevron-back" size={26} color="#1F2937" />
           </TouchableOpacity>
-
-
-          <View style={styles.headerAvatar}>
-
-            <Text style={styles.headerAvatarText}>
-              {name.charAt(0)}
+          <View style={chatStyles.headerAvatar}>
+            <Text style={chatStyles.headerAvatarText}>
+              {name.charAt(0).toUpperCase()}
             </Text>
-
           </View>
-
-
-          <View style={styles.headerInfo}>
-
-            <Text style={styles.headerName}>
-              {name}
-            </Text>
-
-            <Text style={styles.headerStatus}>
-              en línea
-            </Text>
-
+          <View style={chatStyles.headerInfo}>
+            <Text style={chatStyles.headerName}>{name}</Text>
+            <Text style={chatStyles.headerStatus}>en línea</Text>
           </View>
-
         </View>
 
-
-        {/* Mensajes */}
         <ScrollView
-          contentContainerStyle={styles.content}
+          contentContainerStyle={chatStyles.content}
           showsVerticalScrollIndicator={false}
         >
-
-          {/* Mensaje recibido */}
-          <View style={styles.bubbleReceived}>
-
-            <Text style={styles.bubbleTextReceived}>
-              ¿Ya viste el horario de exámenes?
-            </Text>
-
-          </View>
-
-
-          {/* Mensaje enviado */}
-          <View style={styles.bubbleSent}>
-
-            <Text style={styles.bubbleTextSent}>
-              Sí, Cálculo II quedó el jueves
-            </Text>
-
-          </View>
-
-
-          {/* Mensaje recibido */}
-          <View style={styles.bubbleReceived}>
-
-            <Text style={styles.bubbleTextReceived}>
-              ¿Estudiamos mañana en la biblioteca?
-            </Text>
-
-          </View>
-
-
-          {/* Mensaje enviado */}
-          <View style={styles.bubbleSent}>
-
-            <Text style={styles.bubbleTextSent}>
-              Dale, a las 3pm
-            </Text>
-
-          </View>
-
+          {messages.map((item, index) => (
+            <View
+              key={`${index}-${item.text}`}
+              style={
+                item.sent ? chatStyles.bubbleSent : chatStyles.bubbleReceived
+              }
+            >
+              <Text
+                style={
+                  item.sent
+                    ? chatStyles.bubbleTextSent
+                    : chatStyles.bubbleTextReceived
+                }
+              >
+                {item.text}
+              </Text>
+            </View>
+          ))}
         </ScrollView>
 
-
-        {/* Barra de entrada */}
-        <View style={styles.inputBar}>
-
+        <View style={chatStyles.inputBar}>
           <TextInput
-            style={styles.input}
+            style={chatStyles.input}
             placeholder="Escribe un mensaje"
             placeholderTextColor="#94A3B8"
             value={message}
             onChangeText={setMessage}
+            onSubmitEditing={sendMessage}
+            returnKeyType="send"
+            accessibilityLabel="Escribe un mensaje"
           />
-
-          <TouchableOpacity style={styles.sendButton}>
-
-            <Ionicons
-              name="send"
-              size={18}
-              color="#FFFFFF"
-            />
-
+          <TouchableOpacity
+            style={chatStyles.sendButton}
+            onPress={sendMessage}
+            accessibilityLabel="Enviar mensaje"
+          >
+            <Ionicons name="send" size={18} color="#FFFFFF" />
           </TouchableOpacity>
-
         </View>
-
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

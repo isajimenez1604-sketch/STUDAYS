@@ -1,6 +1,6 @@
 import { StyleSheet } from "react-native";
 
-export const styles = StyleSheet.create({
+export const chatStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F0F9FF",
@@ -57,6 +57,8 @@ export const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 16,
     paddingVertical: 16,
+    flexGrow: 1,
+    justifyContent: "flex-end",
   },
 
   bubbleReceived: {

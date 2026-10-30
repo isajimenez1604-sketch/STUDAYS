@@ -1,295 +1,134 @@
-import React from "react";
-
+import React, { useMemo, useState } from "react";
 import {
-  View,
-  Text,
-  ScrollView,
   SafeAreaView,
+  ScrollView,
+  Text,
+  TextInput,
   TouchableOpacity,
+  View,
 } from "react-native";
-
 import { Ionicons } from "@expo/vector-icons";
-
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 
+import BottomNavigation from "../components/BottomNavigation";
 import { RootStackParamList } from "../navigation/AppNavigator";
-
-import { styles } from "../styles/ChatListStyles";
+import { chatListStyles } from "../styles/ChatListStyles";
 
 type Props = NativeStackScreenProps<RootStackParamList, "ChatList">;
 
-export default function ChatListScreen({ navigation }: Props) {
-  return (
-    <SafeAreaView style={styles.container}>
+const conversations = [
+  {
+    name: "Grupo Cálculo II",
+    time: "09:41",
+    message: "Juan: ¿Alguien tiene los apuntes?",
+    unread: 3,
+  },
+  {
+    name: "Isabella Jiménez",
+    time: "08:15",
+    message: "Perfecto, nos vemos en la biblioteca",
+    unread: 0,
+  },
+  {
+    name: "Profesor Ramírez",
+    time: "ayer",
+    message: "Recuerden entregar el informe el viernes",
+    unread: 1,
+  },
+];
 
+export default function ChatListScreen({ navigation, route }: Props) {
+  const { user } = route.params;
+  const [query, setQuery] = useState("");
+  const filteredConversations = useMemo(
+    () =>
+      conversations.filter((conversation) =>
+        conversation.name.toLowerCase().includes(query.trim().toLowerCase())
+      ),
+    [query]
+  );
+
+  return (
+    <SafeAreaView style={chatListStyles.container}>
       <ScrollView
-        contentContainerStyle={styles.content}
+        contentContainerStyle={chatListStyles.content}
+        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-
-        {/* Encabezado */}
-        <View style={styles.header}>
-
-          <Text style={styles.title}>
-            Chats
-          </Text>
-
-          <TouchableOpacity style={styles.newChatButton}>
-
-            <Ionicons
-              name="create-outline"
-              size={22}
-              color="#3B82F6"
-            />
-
+        <View style={chatListStyles.header}>
+          <Text style={chatListStyles.title}>Chats</Text>
+          <TouchableOpacity
+            style={chatListStyles.newChatButton}
+            accessibilityLabel="Nuevo chat"
+            onPress={() => setQuery("")}
+          >
+            <Ionicons name="create-outline" size={22} color="#3B82F6" />
           </TouchableOpacity>
-
         </View>
 
-
-        {/* Buscador */}
-        <View style={styles.searchBar}>
-
-          <Ionicons
-            name="search"
-            size={18}
-            color="#64748B"
+        <View style={chatListStyles.searchBar}>
+          <Ionicons name="search" size={18} color="#64748B" />
+          <TextInput
+            style={chatListStyles.searchInput}
+            placeholder="Buscar conversación"
+            placeholderTextColor="#94A3B8"
+            value={query}
+            onChangeText={setQuery}
+            accessibilityLabel="Buscar conversación"
           />
-
-          <Text style={styles.searchInput}>
-            Buscar conversación
-          </Text>
-
         </View>
 
-
-        {/* Chat 1 */}
-        <TouchableOpacity
-          style={styles.chatCard}
-          onPress={() =>
-            navigation.navigate("Chat", { name: "Grupo Cálculo II" })
-          }
-        >
-
-          <View style={styles.avatar}>
-
-            <Text style={styles.avatarText}>
-              G
-            </Text>
-
-          </View>
-
-
-          <View style={styles.chatInfo}>
-
-            <View style={styles.chatTopRow}>
-
-              <Text style={styles.chatName}>
-                Grupo Cálculo II
+        {filteredConversations.map((conversation) => (
+          <TouchableOpacity
+            key={conversation.name}
+            style={chatListStyles.chatCard}
+            onPress={() =>
+              navigation.navigate("Chat", {
+                name: conversation.name,
+                user,
+              })
+            }
+            accessibilityRole="button"
+          >
+            <View style={chatListStyles.avatar}>
+              <Text style={chatListStyles.avatarText}>
+                {conversation.name.charAt(0)}
               </Text>
-
-              <Text style={styles.chatTime}>
-                09:41
-              </Text>
-
             </View>
-
-            <Text style={styles.chatMessage} numberOfLines={1}>
-              Juan: ¿Alguien tiene los apuntes?
-            </Text>
-
-          </View>
-
-
-          <View style={styles.unreadBadge}>
-
-            <Text style={styles.unreadBadgeText}>
-              3
-            </Text>
-
-          </View>
-
-        </TouchableOpacity>
-
-
-        {/* Chat 2 */}
-        <TouchableOpacity
-          style={styles.chatCard}
-          onPress={() =>
-            navigation.navigate("Chat", { name: "Isabella Jiménez" })
-          }
-        >
-
-          <View style={styles.avatar}>
-
-            <Text style={styles.avatarText}>
-              I
-            </Text>
-
-          </View>
-
-
-          <View style={styles.chatInfo}>
-
-            <View style={styles.chatTopRow}>
-
-              <Text style={styles.chatName}>
-                Isabella Jiménez
+            <View style={chatListStyles.chatInfo}>
+              <View style={chatListStyles.chatTopRow}>
+                <Text style={chatListStyles.chatName}>
+                  {conversation.name}
+                </Text>
+                <Text style={chatListStyles.chatTime}>{conversation.time}</Text>
+              </View>
+              <Text style={chatListStyles.chatMessage} numberOfLines={1}>
+                {conversation.message}
               </Text>
-
-              <Text style={styles.chatTime}>
-                08:15
-              </Text>
-
             </View>
-
-            <Text style={styles.chatMessage} numberOfLines={1}>
-              Perfecto, nos vemos en la biblioteca
+            {conversation.unread > 0 ? (
+              <View style={chatListStyles.unreadBadge}>
+                <Text style={chatListStyles.unreadBadgeText}>
+                  {conversation.unread}
+                </Text>
+              </View>
+            ) : null}
+          </TouchableOpacity>
+        ))}
+        {filteredConversations.length === 0 ? (
+          <View style={chatListStyles.emptyCard}>
+            <Text style={chatListStyles.emptyText}>
+              No se encontraron conversaciones.
             </Text>
-
           </View>
-
-        </TouchableOpacity>
-
-
-        {/* Chat 3 */}
-        <TouchableOpacity
-          style={styles.chatCard}
-          onPress={() =>
-            navigation.navigate("Chat", { name: "Profesor Ramírez" })
-          }
-        >
-
-          <View style={styles.avatar}>
-
-            <Text style={styles.avatarText}>
-              P
-            </Text>
-
-          </View>
-
-
-          <View style={styles.chatInfo}>
-
-            <View style={styles.chatTopRow}>
-
-              <Text style={styles.chatName}>
-                Profesor Ramírez
-              </Text>
-
-              <Text style={styles.chatTime}>
-                ayer
-              </Text>
-
-            </View>
-
-            <Text style={styles.chatMessage} numberOfLines={1}>
-              Recuerden entregar el informe el viernes
-            </Text>
-
-          </View>
-
-
-          <View style={styles.unreadBadge}>
-
-            <Text style={styles.unreadBadgeText}>
-              1
-            </Text>
-
-          </View>
-
-        </TouchableOpacity>
-
+        ) : null}
       </ScrollView>
 
-
-      {/* Navegación inferior */}
-      <View style={styles.bottomNav}>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => navigation.navigate("Home")}
-        >
-
-          <Ionicons
-            name="home-outline"
-            size={23}
-            color="#64748B"
-          />
-
-          <Text style={styles.navText}>
-            Inicio
-          </Text>
-
-        </TouchableOpacity>
-
-
-        <TouchableOpacity style={styles.navItem}>
-
-          <Ionicons
-            name="checkmark-circle-outline"
-            size={23}
-            color="#64748B"
-          />
-
-          <Text style={styles.navText}>
-            Tareas
-          </Text>
-
-        </TouchableOpacity>
-
-
-        <TouchableOpacity style={styles.navItem}>
-
-          <Ionicons
-            name="calendar-outline"
-            size={23}
-            color="#64748B"
-          />
-
-          <Text style={styles.navText}>
-            Calendario
-          </Text>
-
-        </TouchableOpacity>
-
-
-        <TouchableOpacity style={styles.navItem}>
-
-          <Ionicons
-            name="time-outline"
-            size={23}
-            color="#64748B"
-          />
-
-          <Text style={styles.navText}>
-            Planificador
-          </Text>
-
-        </TouchableOpacity>
-
-
-        <TouchableOpacity style={styles.navItem}>
-
-          <Ionicons
-            name="chatbubbles"
-            size={23}
-            color="#3B82F6"
-          />
-
-          <Text
-            style={[
-              styles.navText,
-              styles.navTextActive,
-            ]}
-          >
-            Foro
-          </Text>
-
-        </TouchableOpacity>
-
-      </View>
-
+      <BottomNavigation
+        active="Forum"
+        navigation={navigation}
+        user={user}
+      />
     </SafeAreaView>
   );
 }

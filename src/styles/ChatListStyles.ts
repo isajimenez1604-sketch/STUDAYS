@@ -1,6 +1,6 @@
 import { StyleSheet } from "react-native";
 
-export const styles = StyleSheet.create({
+export const chatListStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F0F9FF",
@@ -90,9 +90,11 @@ export const styles = StyleSheet.create({
   },
 
   chatName: {
+    flex: 1,
     fontSize: 16,
     fontWeight: "700",
     color: "#1F2937",
+    marginRight: 8,
   },
 
   chatTime: {
@@ -123,6 +125,19 @@ export const styles = StyleSheet.create({
     fontWeight: "700",
   },
 
+  emptyCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 15,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+
+  emptyText: {
+    color: "#64748B",
+    fontSize: 14,
+  },
+
   bottomNav: {
     position: "absolute",
     left: 15,
@@ -136,21 +151,5 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 1,
     borderColor: "#E2E8F0",
-  },
-
-  navItem: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  navText: {
-    fontSize: 10,
-    color: "#64748B",
-    marginTop: 4,
-  },
-
-  navTextActive: {
-    color: "#3B82F6",
-    fontWeight: "700",
   },
 });

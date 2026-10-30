@@ -7,6 +7,19 @@ export interface CreateTaskDto {
   dueDate: string | null;
 }
 
+export function parseTaskUserId(value: unknown): number {
+  const userId =
+    typeof value === "string" && /^\d+$/.test(value) ? Number(value) : Number.NaN;
+
+  if (!Number.isSafeInteger(userId) || userId <= 0) {
+    throw AppError.validation({
+      userId: "Debe ser un ID de usuario entero positivo",
+    });
+  }
+
+  return userId;
+}
+
 export function parseCreateTaskDto(body: unknown): CreateTaskDto {
   const data = (body ?? {}) as Record<string, unknown>;
   const errors: Record<string, string> = {};

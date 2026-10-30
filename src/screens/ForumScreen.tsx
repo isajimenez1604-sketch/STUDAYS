@@ -16,7 +16,9 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 
+import BottomNavigation from "../components/BottomNavigation";
 import { RootStackParamList } from "../navigation/AppNavigator";
+import { AppUser } from "../services/authApi";
 
 import {
   ForumPost,
@@ -32,8 +34,11 @@ import { styles } from "../styles/ForumStyles";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Forum">;
 
-export default function ForumScreen({ navigation }: Props) {
-  const [currentUser] = useState(() => getCurrentUser());
+export default function ForumScreen({ navigation, route }: Props) {
+  const { user } = route.params;
+  const [currentUser] = useState<AppUser | null>(
+    () => getCurrentUser() ?? user
+  );
 
   const [posts, setPosts] = useState<ForumPost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -375,7 +380,7 @@ export default function ForumScreen({ navigation }: Props) {
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => navigation.navigate("Home")}
+          onPress={() => navigation.navigate("Home", { user })}
         >
           <Ionicons name="arrow-back" size={24} color="#1F2937" />
         </TouchableOpacity>
@@ -387,6 +392,14 @@ export default function ForumScreen({ navigation }: Props) {
             Comparte y aprende con otros estudiantes
           </Text>
         </View>
+
+        <TouchableOpacity
+          style={styles.refreshButton}
+          onPress={() => navigation.navigate("ChatList", { user })}
+          accessibilityLabel="Ver conversaciones"
+        >
+          <Ionicons name="chatbubbles-outline" size={23} color="#3B82F6" />
+        </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.refreshButton}
@@ -482,6 +495,7 @@ export default function ForumScreen({ navigation }: Props) {
           }
         />
       )}
+      <BottomNavigation active="Forum" navigation={navigation} user={user} />
     </SafeAreaView>
   );
 }

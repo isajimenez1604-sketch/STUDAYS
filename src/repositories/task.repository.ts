@@ -7,6 +7,22 @@ const TASK_COLUMNS =
   "id, user_id, title, description, due_date, status, created_at";
 
 export class TaskRepository implements ITaskRepository {
+  async findByUserId(userId: number): Promise<Task[]> {
+    const { data, error } = await supabase
+      .from(TASKS_TABLE)
+      .select(TASK_COLUMNS)
+      .eq("user_id", userId)
+      .order("due_date", { ascending: true, nullsFirst: false })
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("[TaskRepository.findByUserId]", error);
+      throw AppError.database();
+    }
+
+    return data as Task[];
+  }
+
   async create(input: {
     userId: number;
     title: string;
