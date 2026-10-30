@@ -125,6 +125,83 @@ export const styles = StyleSheet.create({
     marginTop: 5,
   },
 
+  formCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 15,
+    padding: 18,
+    marginBottom: 25,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#1F2937",
+    marginBottom: 7,
+  },
+
+  input: {
+    minHeight: 48,
+    borderWidth: 1,
+    borderColor: "#CBD5E1",
+    borderRadius: 10,
+    paddingHorizontal: 13,
+    paddingVertical: 10,
+    color: "#1F2937",
+    fontSize: 15,
+    marginBottom: 15,
+  },
+
+  descriptionInput: {
+    minHeight: 90,
+  },
+
+  inputError: {
+    borderColor: "#DC2626",
+  },
+
+  errorText: {
+    color: "#DC2626",
+    fontSize: 13,
+    marginTop: -9,
+    marginBottom: 13,
+  },
+
+  createButton: {
+    minHeight: 48,
+    borderRadius: 10,
+    backgroundColor: "#3B82F6",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 2,
+  },
+
+  createButtonText: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+
+  buttonDisabled: {
+    opacity: 0.65,
+  },
+
+  emptyCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 15,
+    padding: 18,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+
+  emptyText: {
+    color: "#64748B",
+    fontSize: 14,
+    lineHeight: 21,
+  },
+
   taskCard: {
     backgroundColor: "#FFFFFF",
     borderRadius: 15,
@@ -146,9 +223,20 @@ export const styles = StyleSheet.create({
   },
 
   taskText: {
-    flex: 1,
     fontSize: 15,
     color: "#1F2937",
+    fontWeight: "600",
+  },
+
+  taskInfo: {
+    flex: 1,
+  },
+
+  taskDescription: {
+    marginTop: 4,
+    fontSize: 13,
+    lineHeight: 19,
+    color: "#64748B",
   },
 
   bottomNav: {

@@ -58,13 +58,13 @@ export default function LoginScreen({ navigation }: Props) {
     setLoading(true);
 
     try {
-      await loginUser({
+      const { user } = await loginUser({
         email: email.trim(),
         password,
       });
 
       // replace: así el botón "atrás" no vuelve al login
-      navigation.replace("Home");
+      navigation.replace("Home", { user });
     } catch (error) {
       if (error instanceof ApiError) {
         if (error.details) {

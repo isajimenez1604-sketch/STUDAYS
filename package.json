@@ -11,8 +11,8 @@
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^18.0.5",
-    "expo": "~57.0.24",
-    "expo-constants": "~57.0.20",
+    "expo": "~57.0.31",
+    "expo-constants": "~57.0.22",
     "expo-status-bar": "~57.0.1",
     "express": "^5.2.1",
     "react": "19.2.3",
@@ -22,6 +22,8 @@
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/react": "~19.2.2",
+    "eslint": "^9.0.0",
+    "eslint-config-expo": "~57.0.2",
     "tsx": "^4.23.15",
     "typescript": "~6.0.3"
   },
@@ -30,7 +32,8 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "api": "tsx watch src/main.ts",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "lint": "expo lint"
   },
   "private": true
 }

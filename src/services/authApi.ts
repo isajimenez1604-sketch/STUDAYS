@@ -23,6 +23,23 @@ export interface LoginResponse {
   user: AppUser;
 }
 
+export interface AppTask {
+  id: number;
+  user_id: number;
+  title: string;
+  description: string | null;
+  due_date: string | null;
+  status: "pending";
+  created_at: string;
+}
+
+export interface CreateTaskInput {
+  userId: number;
+  title: string;
+  description?: string;
+  dueDate?: string | null;
+}
+
 // Error de la API con el mismo formato que devuelve el backend
 export class ApiError extends Error {
   constructor(
@@ -76,4 +93,19 @@ export function loginUser(input: LoginInput): Promise<LoginResponse> {
     method: "POST",
     body: JSON.stringify(input),
   });
+}
+
+export async function listTasks(userId: number): Promise<AppTask[]> {
+  const data = await request<{ tasks: AppTask[] }>(
+    `/tasks?userId=${encodeURIComponent(String(userId))}`
+  );
+  return data.tasks;
+}
+
+export async function createTask(input: CreateTaskInput): Promise<AppTask> {
+  const data = await request<{ task: AppTask }>("/tasks", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+  return data.task;
 }

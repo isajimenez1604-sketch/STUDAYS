@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 
-import { parseCreateTaskDto } from "../dto/task.dto";
+import { parseCreateTaskDto, parseTaskUserId } from "../dto/task.dto";
 import { ITaskService } from "../services/interfaces/task.interface";
 
 export class TaskController {
@@ -9,6 +9,16 @@ export class TaskController {
   constructor({ taskService }: { taskService: ITaskService }) {
     this.taskService = taskService;
   }
+
+  list = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = parseTaskUserId(req.query.userId);
+      const tasks = await this.taskService.findByUserId(userId);
+      res.json({ tasks });
+    } catch (error) {
+      next(error);
+    }
+  };
 
   create = async (req: Request, res: Response, next: NextFunction) => {
     try {
