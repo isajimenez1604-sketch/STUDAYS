@@ -1,0 +1,290 @@
+STUDAYS - DOCUMENTACION FUNCIONAL, TECNICA Y DE SEGURIDAD
+
+ALCANCE
+Este documento describe registro, inicio de sesion, recuperacion de contrasena,
+tareas e inicio, foro y planificador. La funcionalidad de chats ya existente no
+se modifico en esta entrega.
+
+1. TECNOLOGIAS Y RECORRIDO DE UNA PETICION
+- Aplicacion movil: Expo SDK 58, React Native 0.88 y TypeScript.
+- API: Node.js con Express 5 y TypeScript.
+- Persistencia: Supabase (PostgreSQL), accedido por el backend con supabase-js.
+- Dependencias del backend: Awilix conecta controladores, servicios y repositorios.
+- Sesion: JWT firmado con jsonwebtoken; contrasenas y codigos con bcryptjs.
+- Limites de solicitudes: express-rate-limit.
+- Correo de recuperacion: Resend mediante HTTPS.
+- Planificador: react-native-svg dibuja el reloj; AsyncStorage conserva el estado
+  del temporizador localmente; expo-notifications programa avisos del sistema.
+
+El recorrido comun es:
+Pantalla React Native -> servicio cliente HTTP -> ruta Express -> middleware
+(cuando se requiere sesion) -> controlador -> DTO de validacion -> servicio ->
+repositorio -> Supabase. Las rutas se montan en src/routes/v1/index.ts:12-17.
+Los errores se centralizan y se responden como { code, message, details? } en
+src/middlewares/error.middleware.ts:15-43.
+
+La URL base de la API es http://localhost:3000/api/v1. La app obtiene su URL de
+src/config/api.ts; Thunder Client puede usar la URL local del mismo equipo.
+Las peticiones JSON usan Content-Type: application/json. Las rutas protegidas
+usan Authorization: Bearer <accessToken>.
+
+2. REGISTRO
+Pantalla: src/screens/RegisterScreen.tsx.
+API: POST /users/register.
+
+La pantalla llama registerUser desde src/services/authApi.ts. La ruta limita el
+registro y el controlador valida la entrada. El servicio busca duplicados,
+genera el hash de la contrasena y almacena el usuario en Supabase.
+
+Ejemplo real:
+src/dto/user.dto.ts:12-34 normaliza correo y valida nombre, correo, contrasena
+y confirmacion. src/services/user.service.ts:18-32 evita duplicados y aplica:
+
+  const password_hash = await bcrypt.hash(dto.password, SALT_ROUNDS);
+
+Validaciones y seguridad:
+- Nombre de al menos 2 caracteres.
+- Correo con formato valido; se elimina espacio externo y se convierte a
+  minusculas.
+- Contrasena de al menos 8 caracteres.
+- confirmPassword es opcional en la API; si se envia, debe coincidir.
+- La unicidad del correo se verifica en el servicio y tambien se respalda con
+  una restriccion unique en la tabla users.
+- bcryptjs almacena un hash (10 rondas); nunca se guarda la contrasena original.
+- Limite de 5 registros por IP cada 15 minutos.
+
+3. INICIO DE SESION Y SESION DE LA APP
+Pantalla: src/screens/LoginScreen.tsx.
+API: POST /auth/login.
+
+La app envia correo y contrasena a loginUser. El backend compara la contrasena
+con bcrypt y devuelve un JWT de dos horas. La app guarda usuario y token solo
+en memoria en src/services/currentUser.ts; no se persiste el token. Al cerrar
+sesion o reiniciar la app, el usuario debe iniciar sesion de nuevo.
+
+Ejemplo de comparacion:
+src/services/auth.service.ts:17-34:
+
+  const passwordOk = await bcrypt.compare(
+    dto.password,
+    user?.password_hash ?? DUMMY_HASH
+  );
+  if (!user || !passwordOk) {
+    throw AppError.invalidCredentials();
+  }
+
+Ejemplo de firma:
+src/services/session-token.service.ts:5-20:
+
+  expiresIn: SESSION_LIFETIME_SECONDS,
+  issuer: SESSION_ISSUER,
+  audience: SESSION_AUDIENCE,
+
+Validaciones y seguridad:
+- Correo valido y contrasena obligatoria.
+- Correo y contrasena incorrectos producen el mismo error 401
+  INVALID_CREDENTIALS.
+- Se compara con un hash ficticio cuando el correo no existe para reducir la
+  diferencia de tiempo que podria revelar si una cuenta esta registrada.
+- JWT firmado con HS256, expiracion, issuer y audience verificados.
+- SESSION_SECRET solo debe existir en el backend.
+- Limite de 10 solicitudes de login por IP cada 15 minutos.
+- El middleware de sesion acepta solo el formato Bearer y rechaza tokens
+  invalidos o expirados: src/middlewares/auth.middleware.ts:17-43.
+
+4. RECUPERACION DE CONTRASENA
+Pantalla: src/screens/ForgotPasswordScreen.tsx.
+API: POST /auth/forgot-password y POST /auth/reset-password.
+
+En la primera peticion se valida el correo. Si existe la cuenta, el servidor
+genera un numero aleatorio criptografico de seis digitos, guarda solamente su
+hash y fecha de expiracion, y solicita a Resend que envie el codigo. El codigo
+vence a los 10 minutos. En la segunda peticion el backend valida el codigo,
+guarda el hash de la nueva contrasena y marca el codigo como usado.
+
+Ejemplo de generacion:
+src/services/password-reset.service.ts:31-47:
+
+  const code = String(randomInt(100000, 1000000));
+  const codeHash = await bcrypt.hash(code, CODE_SALT_ROUNDS);
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+
+Validaciones y seguridad:
+- Acepta dominios con una o mas partes, por ejemplo usuario@institucion.edu.co.
+- El codigo debe tener exactamente 6 digitos.
+- La nueva contrasena debe tener al menos 8 caracteres y se guarda hasheada.
+- Los codigos activos anteriores se sustituyen; el codigo nuevo vence y solo
+  puede consumirse una vez.
+- La respuesta a solicitar un codigo no confirma si el correo esta registrado.
+- El envio real requiere RESEND_API_KEY y RESEND_FROM_EMAIL configurados solo
+  en el backend. Si faltan, se devuelve EMAIL_SERVICE_NOT_CONFIGURED.
+- forgot-password y reset-password comparten un limite de 3 solicitudes por IP
+  cada 15 minutos. Este es un limite de solicitudes, no un contador separado
+  de intentos por codigo.
+- La consumicion del codigo y el cambio de contrasena se realizan con la
+  funcion SQL consume_password_reset de src/data/schema.sql:58-85, que vuelve
+  a comprobar expiracion y uso al actualizar.
+
+5. TAREAS E INICIO
+Pantallas: src/screens/TasksScreen.tsx y src/screens/HomeScreen.tsx.
+API: GET, POST, PATCH y DELETE /tasks.
+
+Las tareas se guardan en PostgreSQL y se consultan por usuario autenticado.
+La pantalla principal muestra todas las tareas no completadas que vencen en
+los proximos dos dias y tambien las vencidas, ordenadas por fecha. La tarea
+mas cercana no oculta las otras.
+
+Ejemplo de validacion:
+src/dto/task.dto.ts:47-87 valida titulo, descripcion y fecha, y rechaza un
+userId enviado por el cliente. El controlador obtiene la identidad del JWT:
+
+  const dto = parseCreateTaskDto(req.body, authenticatedUserId(req));
+
+src/controllers/task.controller.ts:33-38.
+
+La consulta limita los resultados al usuario:
+src/repositories/task.repository.ts:39-47:
+
+  .from(TASKS_TABLE)
+  .select(TASK_COLUMNS)
+  .eq("user_id", userId)
+
+El mismo filtro user_id se aplica a actualizar y borrar en
+src/repositories/task.repository.ts:100-139.
+
+Funcionamiento de vencimientos:
+- Estados: pending, in_progress, completed y overdue.
+- El usuario puede elegir pending, in_progress o completed. overdue lo calcula
+  el backend al listar/actualizar; tareas completadas no vencen.
+- Si una fecha overdue se mueve al futuro o se elimina, el estado se restaura
+  a pending.
+- La pantalla principal usa getTasksDueSoon en src/utils/taskDates.ts:74-97.
+  Su limite por defecto es dos dias y excluye las completadas.
+
+Validaciones y seguridad:
+- Token obligatorio para todas las operaciones.
+- Identidad del usuario tomada de la sesion, nunca de userId del body.
+- Titulo obligatorio, maximo 120 caracteres; descripcion opcional, maximo 1000.
+- Fecha limite opcional y debe poder interpretarse como fecha.
+- ID de tarea debe ser entero positivo.
+- Las consultas de modificar/borrar incluyen simultaneamente el ID de tarea y
+  el ID autenticado. Una tarea ajena se trata como inexistente.
+- La tabla SQL restringe longitud, estados permitidos y relacion de usuario.
+
+6. FORO
+Pantalla: src/screens/ForumScreen.tsx.
+API: GET/POST /forum/posts y GET/POST /forum/posts/:postId/comments.
+
+La pantalla Foro consulta todas las publicaciones. Inicio reutiliza esa
+informacion, filtra por user_id de la sesion y muestra las publicaciones
+propias recientes. Las publicaciones y comentarios se enriquecen con el nombre
+y un identificador publico del autor. Foro tambien usa los colores del tema
+activo (claro/oscuro) a traves del contexto de tema.
+
+Ejemplo de identidad:
+src/routes/v1/forum.route.ts:10-12 protege todas las rutas. En
+src/controllers/forum.controller.ts:28-31 se crea la publicacion con la
+identidad autenticada. src/services/forum.service.ts:124-130 crea el
+identificador:
+
+  identifier: `STU-${String(id).padStart(6, "0")}`,
+
+Ejemplo de filtrado en Inicio:
+src/screens/HomeScreen.tsx:40-54:
+
+  posts.filter((post) => post.user_id === user.id)
+
+Validaciones y seguridad:
+- JWT obligatorio para consultar/crear publicaciones y comentarios.
+- La API rechaza userId en el body; el autor sale del JWT.
+- Titulo de publicacion: requerido, hasta 150 caracteres.
+- Contenido de publicacion: requerido, hasta 5000 caracteres.
+- Contenido de comentario: requerido, hasta 2000 caracteres.
+- postId debe ser un entero positivo y la publicacion debe existir.
+- Autor devuelto: { id, name, identifier } para publicaciones y comentarios.
+- El identificador STU-000001 es estable y unico porque deriva del ID de usuario,
+  pero es publico y predecible; no es una credencial ni un secreto.
+
+7. PLANIFICADOR Y TEMPORIZADOR
+Pantalla: src/screens/PlannerScreen.tsx.
+API protegida:
+- GET /planner/intervals
+- POST /planner/intervals
+- PATCH /planner/intervals/:intervalId
+- DELETE /planner/intervals/:intervalId
+
+Los intervalos (estudio o descanso) se guardan en Supabase por usuario. El
+temporizador usa la secuencia ordenada de intervalos al iniciarse. El aro
+radial se dibuja con Circle de react-native-svg; el color cambia entre estudio
+y descanso. Puede iniciarse, pausarse, reanudarse y reiniciarse.
+
+El tiempo se calcula usando endsAt, una fecha absoluta, no contando solo los
+segundos que la pantalla permanece abierta. El estado se guarda en AsyncStorage
+con una clave distinta por usuario. Al volver a primer plano o abrir la
+pantalla, calcula el tiempo transcurrido y avanza los intervalos necesarios.
+
+Ejemplo de avance al pasar el limite:
+src/utils/plannerTimer.ts:72-97:
+
+  while (now >= endsAt) {
+    index += 1;
+    if (index >= timer.intervals.length) {
+      return {
+        ...timer,
+        phase: "completed",
+        currentIndex: timer.intervals.length - 1,
+        endsAt: null,
+        remainingMs: 0,
+      };
+    }
+    endsAt += timer.intervals[index].duration_minutes * 60_000;
+  }
+
+Los avisos se programan con expo-notifications en
+src/services/plannerNotifications.ts:40-90. Usa el sonido predeterminado del
+sistema; el usuario debe permitir notificaciones. La configuracion del plugin
+esta en app.json:26-36.
+
+Validaciones y seguridad:
+- JWT obligatorio; cada usuario solo administra sus propios intervalos.
+- No se acepta userId del cliente.
+- Titulo requerido de hasta 80 caracteres.
+- Duracion entera entre 1 y 240 minutos.
+- Tipo limitado a study o break.
+- Maximo de 50 intervalos por usuario.
+- Estado local recuperado de AsyncStorage se valida antes de usarlo con
+  isTimerState en src/utils/plannerTimer.ts:21-60.
+- Android puede retrasar avisos por optimizacion de bateria. No se verifico el
+  comportamiento de fondo en un dispositivo fisico.
+
+8. VALIDACIONES Y SEGURIDAD COMUNES
+- El middleware de errores devuelve codigo y mensaje consistentes; no expone
+  errores internos de Supabase al cliente.
+- Los limites por IP son: registro 5, login 10 y recuperacion 3 solicitudes por
+  cada 15 minutos. Estan implementados con express-rate-limit en
+  src/middlewares/rate-limit.middleware.ts:5-27.
+- Las tablas users, tasks, password_reset_codes y planner_intervals tienen
+  Row Level Security habilitada en Supabase. No se crean politicas para el
+  cliente movil: las operaciones se hacen en el backend con la service role.
+- SUPABASE_SERVICE_ROLE_KEY, SESSION_SECRET, RESEND_API_KEY y
+  RESEND_FROM_EMAIL son secretos del backend; no deben incluirse en la app ni
+  subirse al repositorio.
+- Las solicitudes que necesitan autenticacion fallan con 401 sin token, con
+  token invalido o vencido. Los datos no deben protegerse enviando un userId
+  desde el telefono; el backend siempre lo obtiene del token.
+
+9. BASE DE DATOS Y PUESTA EN MARCHA
+Tablas principales y definiciones:
+- users y tasks: src/data/schema.sql:2-28.
+- planner_intervals: src/data/migrations/006_planner_intervals.sql.
+- forum_posts y forum_comments: src/data/migrations/004_create_forum.sql.
+- password_reset_codes y rutina atomica de consumo: migracion
+  src/data/migrations/005_task_status_password_reset.sql y schema.sql.
+
+Antes de probar el planificador, ejecuta la migracion 006 en el SQL Editor de
+Supabase. Para recuperar contrasenas, ejecuta tambien la migracion 005 y
+configura Resend. Configura SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY en el
+.env del backend e inicia la API con npm run api.
+
+La guia PRUEBAS_THUNDER_CLIENT.txt contiene las peticiones de prueba en el
+formato solicitado: URL, body y resultado esperado.

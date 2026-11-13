@@ -13,20 +13,26 @@ export interface CreateForumCommentDto {
   content: string;
 }
 
+function asRecord(body: unknown): Record<string, unknown> {
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    throw AppError.validation({ body: "Debe ser un objeto JSON" });
+  }
+  return body as Record<string, unknown>;
+}
+
 export function parseCreateForumPostDto(
-  body: unknown
+  body: unknown,
+  userId: number
 ): CreateForumPostDto {
-  const data = (body ?? {}) as Record<string, unknown>;
+  const data = asRecord(body);
   const errors: Record<string, string> = {};
 
-  const userId =
-    typeof data.userId === "number" ? data.userId : Number.NaN;
   const title = typeof data.title === "string" ? data.title.trim() : "";
   const content =
     typeof data.content === "string" ? data.content.trim() : "";
 
-  if (!Number.isSafeInteger(userId) || userId <= 0) {
-    errors.userId = "Debe ser un ID de usuario entero positivo";
+  if ("userId" in data) {
+    errors.userId = "La identidad se obtiene de la sesión";
   }
 
   if (title.length === 0 || title.length > 150) {
@@ -48,18 +54,17 @@ export function parseCreateForumPostDto(
 
 export function parseCreateForumCommentDto(
   body: unknown,
-  postId: number
+  postId: number,
+  userId: number
 ): CreateForumCommentDto {
-  const data = (body ?? {}) as Record<string, unknown>;
+  const data = asRecord(body);
   const errors: Record<string, string> = {};
 
-  const userId =
-    typeof data.userId === "number" ? data.userId : Number.NaN;
   const content =
     typeof data.content === "string" ? data.content.trim() : "";
 
-  if (!Number.isSafeInteger(userId) || userId <= 0) {
-    errors.userId = "Debe ser un ID de usuario entero positivo";
+  if ("userId" in data) {
+    errors.userId = "La identidad se obtiene de la sesión";
   }
 
   if (!Number.isSafeInteger(postId) || postId <= 0) {

@@ -115,11 +115,7 @@ export default function ForumScreen({ navigation, route }: Props) {
     try {
       setPosting(true);
 
-      await createForumPost(
-        currentUser.id,
-        title.trim(),
-        content.trim()
-      );
+      await createForumPost(title.trim(), content.trim());
 
       setTitle("");
       setContent("");
@@ -189,11 +185,7 @@ export default function ForumScreen({ navigation, route }: Props) {
     try {
       setPostingCommentId(postId);
 
-      await createForumComment(
-        postId,
-        currentUser.id,
-        commentText
-      );
+      await createForumComment(postId, commentText);
 
       setCommentDrafts((previous) => ({
         ...previous,
@@ -224,10 +216,7 @@ export default function ForumScreen({ navigation, route }: Props) {
     const isLoadingComments = commentsLoadingId === item.id;
     const isPostingComment = postingCommentId === item.id;
 
-    const postAuthor =
-      currentUser?.id === item.user_id
-        ? currentUser.name
-        : `Usuario ${item.user_id}`;
+    const postAuthor = item.author;
 
     return (
       <View
@@ -252,7 +241,7 @@ export default function ForumScreen({ navigation, route }: Props) {
 
           <View style={styles.postAuthorInfo}>
             <Text style={[styles.postAuthor, { color: colors.text }]}>
-              {postAuthor}
+              {postAuthor.name} · {postAuthor.identifier}
             </Text>
 
             <Text style={[styles.postDate, { color: colors.secondaryText }]}>
@@ -340,10 +329,7 @@ export default function ForumScreen({ navigation, route }: Props) {
               </Text>
             ) : (
               comments.map((comment) => {
-                const commentAuthor =
-                  currentUser?.id === comment.user_id
-                    ? currentUser.name
-                    : `Usuario ${comment.user_id}`;
+                const commentAuthor = comment.author;
 
                 return (
                   <View
@@ -363,7 +349,7 @@ export default function ForumScreen({ navigation, route }: Props) {
                           { color: colors.text },
                         ]}
                       >
-                        {commentAuthor}
+                        {commentAuthor.name} · {commentAuthor.identifier}
                       </Text>
 
                       <Text

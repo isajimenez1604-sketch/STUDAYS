@@ -2,6 +2,7 @@ import { supabase } from "../config/supabase";
 import {
   USERS_TABLE,
   PublicUser,
+  PublicUserSummary,
   User,
   UserSummary,
 } from "../data/models/user.model";
@@ -24,7 +25,7 @@ export class UserRepository implements IUserRepository {
       throw AppError.database();
     }
 
-    return data as User | null;
+    return data;
   }
 
   async findById(id: number): Promise<UserSummary | null> {
@@ -39,7 +40,23 @@ export class UserRepository implements IUserRepository {
       throw AppError.database();
     }
 
-    return data as UserSummary | null;
+    return data;
+  }
+
+  async findPublicByIds(ids: number[]): Promise<PublicUserSummary[]> {
+    if (ids.length === 0) return [];
+
+    const { data, error } = await supabase
+      .from(USERS_TABLE)
+      .select("id, name")
+      .in("id", ids);
+
+    if (error) {
+      console.error("[UserRepository.findPublicByIds]", error);
+      throw AppError.database();
+    }
+
+    return data ?? [];
   }
 
   async create(input: {
@@ -61,6 +78,6 @@ export class UserRepository implements IUserRepository {
       throw AppError.database();
     }
 
-    return data as PublicUser;
+    return data;
   }
 }

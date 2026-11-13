@@ -1,5 +1,12 @@
 
 import { API_URL } from "../config/api";
+import { getAccessToken } from "./currentUser";
+
+export interface ForumAuthor {
+  id: number;
+  name: string;
+  identifier: string;
+}
 
 export interface ForumPost {
   id: number;
@@ -7,6 +14,7 @@ export interface ForumPost {
   title: string;
   content: string;
   created_at: string;
+  author: ForumAuthor;
 }
 
 export interface ForumComment {
@@ -15,6 +23,7 @@ export interface ForumComment {
   user_id: number;
   content: string;
   created_at: string;
+  author: ForumAuthor;
 }
 
 interface ForumPostsResponse {
@@ -48,6 +57,9 @@ async function request<T>(
       ...options,
       headers: {
         "Content-Type": "application/json",
+        ...(getAccessToken()
+          ? { Authorization: `Bearer ${getAccessToken()}` }
+          : {}),
         ...options.headers,
       },
     });
@@ -90,7 +102,6 @@ export async function getForumComments(
 
 // Crear una publicación
 export async function createForumPost(
-  userId: number,
   title: string,
   content: string
 ): Promise<ForumPost> {
@@ -99,7 +110,6 @@ export async function createForumPost(
     {
       method: "POST",
       body: JSON.stringify({
-        userId,
         title,
         content,
       }),
@@ -112,7 +122,6 @@ export async function createForumPost(
 // Crear un comentario
 export async function createForumComment(
   postId: number,
-  userId: number,
   content: string
 ): Promise<ForumComment> {
   const response = await request<CreateCommentResponse>(
@@ -120,7 +129,6 @@ export async function createForumComment(
     {
       method: "POST",
       body: JSON.stringify({
-        userId,
         content,
       }),
     }

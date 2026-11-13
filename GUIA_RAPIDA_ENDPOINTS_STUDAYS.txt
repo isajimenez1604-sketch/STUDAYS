@@ -7,7 +7,8 @@ Antes de probar:
 1. Configura SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY en el .env del backend.
 2. Configura SESSION_SECRET con un valor aleatorio de al menos 32 caracteres.
    Ejemplo para generarlo: node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"
-3. Ejecuta src/data/migrations/005_task_status_password_reset.sql en Supabase.
+3. Ejecuta en Supabase, en orden, las migraciones 005_task_status_password_reset.sql
+   y 006_planner_intervals.sql.
 4. Para recuperacion por correo, configura RESEND_API_KEY y
    RESEND_FROM_EMAIL en el .env. No compartas ni subas esas credenciales.
 5. Inicia el backend con npm run api.
@@ -116,17 +117,51 @@ SEGURIDAD Y LIMITES
 
 LISTAR PUBLICACIONES DEL FORO
 GET /forum/posts
+Header: Authorization: Bearer <accessToken>
 Respuesta 200: { "message": "Publicaciones obtenidas correctamente",
   "posts": [ { "id": 1, "user_id": 1, "title": "...", "content": "...",
-  "created_at": "..." } ] }
+  "created_at": "...", "author": { "id": 1, "name": "Ana Lopez",
+  "identifier": "STU-000001" } } ] }
 
 CREAR PUBLICACION EN EL FORO
 POST /forum/posts
-Body: { "userId": 1, "title": "Consejos para el examen",
+Header: Authorization: Bearer <accessToken>
+Body: { "title": "Consejos para el examen",
   "content": "Compartamos material de estudio." }
 Respuesta 201: { "message": "Publicacion creada correctamente",
   "post": { "id": 1, "user_id": 1, "title": "...", "content": "...",
-  "created_at": "..." } }
+  "created_at": "...", "author": { "id": 1, "name": "Ana Lopez",
+  "identifier": "STU-000001" } } }
+Todas las rutas del foro requieren token. El nombre y el identificador público
+del autor se devuelven en cada publicación y comentario. En Inicio solo se
+muestran tus publicaciones; en Foro se ven las publicaciones de todos.
+
+LISTAR COMENTARIOS
+GET /forum/posts/1/comments
+Header: Authorization: Bearer <accessToken>
+Cada comentario incluye author.name y author.identifier.
+
+CREAR COMENTARIO
+POST /forum/posts/1/comments
+Header: Authorization: Bearer <accessToken>
+Body: { "content": "Gracias por compartir." }
+No envíes userId; se toma del token.
+
+PLANIFICADOR
+Todas las rutas requieren Authorization: Bearer <accessToken>.
+- GET /planner/intervals: lista tus intervalos.
+- POST /planner/intervals: agrega uno.
+  Body: { "title": "Estudiar matematicas", "durationMinutes": 45,
+    "kind": "study" }
+- PATCH /planner/intervals/1: edita title, durationMinutes o kind.
+- DELETE /planner/intervals/1: elimina tu intervalo.
+kind acepta study o break; durationMinutes debe ser entero de 1 a 240.
+Cada usuario puede guardar hasta 50. El usuario se determina por el token,
+por lo que no se debe enviar userId.
+La app avisa con sonido al cambiar de intervalo y conserva el temporizador al
+minimizarse. Deben permitirse notificaciones en el teléfono. Para incluir la
+configuración nativa de notificaciones, genera/reconstruye el APK después de
+usar expo-notifications en app.json.
 
 ERRORES COMUNES
 400 VALIDATION_ERROR: datos o formato incorrectos.

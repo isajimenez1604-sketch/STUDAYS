@@ -6,6 +6,7 @@ import RegisterScreen from "../screens/RegisterScreen";
 import HomeScreen from "../screens/HomeScreen";
 import TasksScreen from "../screens/TasksScreen";
 import CalendarScreen from "../screens/CalendarScreen";
+import PlannerScreen from "../screens/PlannerScreen";
 import ChatListScreen from "../screens/ChatListScreen";
 import ChatScreen from "../screens/ChatScreen";
 import ForumScreen from "../screens/ForumScreen";
@@ -20,6 +21,7 @@ export type RootStackParamList = {
   Home: { user: AppUser };
   Tasks: { user: AppUser };
   Calendar: { user: AppUser };
+  Planner: { user: AppUser };
   ChatList: { user: AppUser };
   Chat: { name: string; user: AppUser };
   Forum: { user: AppUser };
@@ -38,6 +40,7 @@ export default function AppNavigator() {
       <Stack.Screen name="Home" component={HomeScreen} />
       <Stack.Screen name="Tasks" component={TasksScreen} />
       <Stack.Screen name="Calendar" component={CalendarScreen} />
+      <Stack.Screen name="Planner" component={PlannerScreen} />
       <Stack.Screen name="ChatList" component={ChatListScreen} />
       <Stack.Screen name="Chat" component={ChatScreen} />
       <Stack.Screen name="Forum" component={ForumScreen} />

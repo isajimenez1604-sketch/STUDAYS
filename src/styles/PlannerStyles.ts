@@ -1,0 +1,203 @@
+import { StyleSheet } from "react-native";
+
+export const plannerStyles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 120,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 18,
+  },
+  heading: {
+    fontSize: 24,
+    fontWeight: "800",
+  },
+  subtitle: {
+    fontSize: 14,
+    marginTop: 4,
+  },
+  timerCard: {
+    borderRadius: 22,
+    paddingVertical: 20,
+    paddingHorizontal: 16,
+    alignItems: "center",
+    borderWidth: 1,
+    marginBottom: 20,
+  },
+  phaseLabel: {
+    fontSize: 16,
+    fontWeight: "700",
+    textAlign: "center",
+    marginBottom: 10,
+  },
+  ring: {
+    width: 250,
+    height: 250,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 10,
+  },
+  ringSvg: {
+    position: "absolute",
+    left: 0,
+    top: 0,
+  },
+  timerText: {
+    fontSize: 46,
+    fontWeight: "800",
+    fontVariant: ["tabular-nums"],
+  },
+  timerHint: {
+    fontSize: 13,
+    marginTop: 4,
+  },
+  timerControls: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 14,
+  },
+  primaryButton: {
+    minWidth: 132,
+    minHeight: 48,
+    paddingHorizontal: 20,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 8,
+  },
+  secondaryButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+  },
+  buttonText: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  sectionHeading: {
+    fontSize: 19,
+    fontWeight: "800",
+    marginBottom: 12,
+  },
+  formCard: {
+    padding: 16,
+    borderRadius: 18,
+    borderWidth: 1,
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 13,
+    fontWeight: "700",
+    marginBottom: 7,
+  },
+  input: {
+    minHeight: 46,
+    borderWidth: 1,
+    borderRadius: 11,
+    paddingHorizontal: 12,
+    fontSize: 15,
+    marginBottom: 13,
+  },
+  fieldRow: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  durationField: {
+    flex: 1,
+  },
+  typeOptions: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 14,
+  },
+  typeButton: {
+    flex: 1,
+    minHeight: 42,
+    borderWidth: 1,
+    borderRadius: 11,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+  },
+  typeButtonText: {
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  intervalButton: {
+    minHeight: 46,
+    borderRadius: 11,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 8,
+  },
+  intervalButtonText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  intervalCard: {
+    minHeight: 72,
+    borderRadius: 15,
+    borderWidth: 1,
+    paddingHorizontal: 13,
+    paddingVertical: 10,
+    marginBottom: 9,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  intervalIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 11,
+  },
+  intervalInfo: {
+    flex: 1,
+  },
+  intervalTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  intervalSubtitle: {
+    fontSize: 12,
+    marginTop: 3,
+  },
+  iconButton: {
+    width: 38,
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  helperText: {
+    fontSize: 12,
+    lineHeight: 18,
+    marginTop: 10,
+  },
+  emptyText: {
+    fontSize: 14,
+    textAlign: "center",
+    paddingVertical: 16,
+  },
+  errorText: {
+    color: "#DC2626",
+    fontSize: 13,
+    lineHeight: 18,
+    marginBottom: 12,
+  },
+});
