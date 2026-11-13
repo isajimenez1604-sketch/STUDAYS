@@ -22,6 +22,8 @@ import { styles } from "../styles/LoginStyles";
 
 import { ApiError, loginUser } from "../services/authApi";
 import { setCurrentUser } from "../services/currentUser";
+import { useAppTheme } from "../context/ThemeContext";
+import ThemeToggleButton from "../components/ThemeToggleButton";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
 
@@ -30,6 +32,7 @@ type FieldErrors = Partial<Record<"email" | "password", string>>;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function LoginScreen({ navigation }: Props) {
+  const { colors } = useAppTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -59,12 +62,12 @@ export default function LoginScreen({ navigation }: Props) {
     setLoading(true);
 
     try {
-      const { user } = await loginUser({
+      const { user, accessToken } = await loginUser({
         email: email.trim(),
         password,
       });
 
-      setCurrentUser(user);
+      setCurrentUser(user, accessToken);
 
       // replace: así el botón "atrás" no vuelve al login
       navigation.replace("Home", { user });
@@ -84,14 +87,15 @@ export default function LoginScreen({ navigation }: Props) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <ScrollView
           contentContainerStyle={styles.content}
-          keyboardShouldPersistTaps="handled"
+          keyboardShouldPersistTaps="always"
+          keyboardDismissMode="none"
           showsVerticalScrollIndicator={false}
         >
           {/* Logo */}
@@ -100,23 +104,24 @@ export default function LoginScreen({ navigation }: Props) {
 
             <Text style={styles.logo}>STUDAYS</Text>
 
-            <Text style={styles.subtitle}>
+            <Text style={[styles.subtitle, { color: colors.text }]}>
               Organiza. Planifica. Aprende.
             </Text>
+            <ThemeToggleButton />
           </View>
 
           {/* Bienvenida */}
-          <Text style={styles.welcome}>
+          <Text style={[styles.welcome, { color: colors.text }]}>
             ¡Bienvenido! 👋
           </Text>
 
-          <Text style={styles.description}>
+          <Text style={[styles.description, { color: colors.secondaryText }]}>
             Inicia sesión para continuar
           </Text>
 
           {/* Correo */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>
+            <Text style={[styles.label, { color: colors.text }]}>
               Correo electrónico
             </Text>
 
@@ -124,12 +129,13 @@ export default function LoginScreen({ navigation }: Props) {
               style={[
                 styles.inputWrapper,
                 fieldErrors.email && styles.inputWrapperError,
+                { backgroundColor: colors.surface, borderColor: fieldErrors.email ? "#EF4444" : colors.border },
               ]}
             >
-              <Text style={styles.icon}>✉</Text>
+              <Text style={[styles.icon, { color: colors.secondaryText }]}>✉</Text>
 
               <TextInput
-                style={styles.input}
+                style={[styles.input, { color: colors.text }]}
                 placeholder="Correo@correo.com"
                 placeholderTextColor="#94A3B8"
                 value={email}
@@ -147,7 +153,7 @@ export default function LoginScreen({ navigation }: Props) {
 
           {/* Contraseña */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>
+            <Text style={[styles.label, { color: colors.text }]}>
               Contraseña
             </Text>
 
@@ -155,12 +161,13 @@ export default function LoginScreen({ navigation }: Props) {
               style={[
                 styles.inputWrapper,
                 fieldErrors.password && styles.inputWrapperError,
+                { backgroundColor: colors.surface, borderColor: fieldErrors.password ? "#EF4444" : colors.border },
               ]}
             >
-              <Text style={styles.icon}>🔒</Text>
+              <Text style={[styles.icon, { color: colors.secondaryText }]}>🔒</Text>
 
               <TextInput
-                style={styles.input}
+                style={[styles.input, { color: colors.text }]}
                 placeholder="Tu contraseña"
                 placeholderTextColor="#94A3B8"
                 value={password}
@@ -176,7 +183,7 @@ export default function LoginScreen({ navigation }: Props) {
                 <Ionicons
                   name={passwordVisible ? "eye" : "eye-off"}
                   size={22}
-                  color="#64748B"
+                  color={colors.secondaryText}
                 />
               </TouchableOpacity>
             </View>
@@ -210,7 +217,7 @@ export default function LoginScreen({ navigation }: Props) {
           {/* Recuperar contraseña */}
           <TouchableOpacity
             style={styles.forgotPassword}
-            onPress={() => {}}
+            onPress={() => navigation.navigate("ForgotPassword")}
           >
             <Text style={styles.forgotPasswordText}>
               ¿Olvidaste tu contraseña?
@@ -219,7 +226,7 @@ export default function LoginScreen({ navigation }: Props) {
 
           {/* Registro */}
           <View style={styles.registerContainer}>
-            <Text style={styles.registerQuestion}>
+            <Text style={[styles.registerQuestion, { color: colors.secondaryText }]}>
               ¿No tienes una cuenta?
             </Text>
 
@@ -233,9 +240,6 @@ export default function LoginScreen({ navigation }: Props) {
           </View>
         </ScrollView>
 
-        {/* Decoración inferior */}
-        <View style={styles.bottomDecorationLight} />
-        <View style={styles.bottomDecoration} />
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

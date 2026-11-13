@@ -17,6 +17,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import BottomNavigation from "../components/BottomNavigation";
+import ThemeToggleButton from "../components/ThemeToggleButton";
+import { useAppTheme } from "../context/ThemeContext";
 import { RootStackParamList } from "../navigation/AppNavigator";
 import { AppUser } from "../services/authApi";
 
@@ -36,6 +38,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "Forum">;
 
 export default function ForumScreen({ navigation, route }: Props) {
   const { user } = route.params;
+  const { colors } = useAppTheme();
   const [currentUser] = useState<AppUser | null>(
     () => getCurrentUser() ?? user
   );
@@ -227,42 +230,66 @@ export default function ForumScreen({ navigation, route }: Props) {
         : `Usuario ${item.user_id}`;
 
     return (
-      <View style={styles.postCard}>
+      <View
+        style={[
+          styles.postCard,
+          { backgroundColor: colors.surface, borderColor: colors.border },
+        ]}
+      >
         <View style={styles.postHeader}>
-          <View style={styles.avatar}>
+          <View
+            style={[
+              styles.avatar,
+              { backgroundColor: colors.iconBackground },
+            ]}
+          >
             <Ionicons
               name="person-outline"
               size={22}
-              color="#3B82F6"
+              color={colors.text}
             />
           </View>
 
           <View style={styles.postAuthorInfo}>
-            <Text style={styles.postAuthor}>{postAuthor}</Text>
+            <Text style={[styles.postAuthor, { color: colors.text }]}>
+              {postAuthor}
+            </Text>
 
-            <Text style={styles.postDate}>
+            <Text style={[styles.postDate, { color: colors.secondaryText }]}>
               {new Date(item.created_at).toLocaleDateString()}
             </Text>
           </View>
         </View>
 
-        <Text style={styles.postTitle}>{item.title}</Text>
-        <Text style={styles.postContent}>{item.content}</Text>
+        <Text style={[styles.postTitle, { color: colors.text }]}>
+          {item.title}
+        </Text>
+        <Text style={[styles.postContent, { color: colors.secondaryText }]}>
+          {item.content}
+        </Text>
 
-        <View style={styles.postFooter}>
+        <View
+          style={[
+            styles.postFooter,
+            { borderTopColor: colors.border },
+          ]}
+        >
           <Ionicons
             name="chatbubble-outline"
             size={18}
-            color="#64748B"
+            color={colors.secondaryText}
           />
 
-          <Text style={styles.commentLabel}>
+          <Text style={[styles.commentLabel, { color: colors.secondaryText }]}>
             Publicación #{item.id}
           </Text>
         </View>
 
         <TouchableOpacity
-          style={styles.commentToggle}
+          style={[
+            styles.commentToggle,
+            { backgroundColor: colors.iconBackground },
+          ]}
           onPress={() => handleToggleComments(item.id)}
           accessibilityLabel={
             isExpanded ? "Ocultar comentarios" : "Ver y responder comentarios"
@@ -271,23 +298,28 @@ export default function ForumScreen({ navigation, route }: Props) {
           <Ionicons
             name="chatbubbles-outline"
             size={19}
-            color="#3B82F6"
+            color={colors.text}
           />
 
-          <Text style={styles.commentToggleText}>
+          <Text style={[styles.commentToggleText, { color: colors.text }]}>
             {isExpanded ? "Ocultar comentarios" : "Ver y responder"}
           </Text>
 
           <Ionicons
             name={isExpanded ? "chevron-up" : "chevron-down"}
             size={18}
-            color="#3B82F6"
+            color={colors.text}
           />
         </TouchableOpacity>
 
         {isExpanded && (
-          <View style={styles.commentsSection}>
-            <Text style={styles.commentsTitle}>
+          <View
+            style={[
+              styles.commentsSection,
+              { borderTopColor: colors.border },
+            ]}
+          >
+            <Text style={[styles.commentsTitle, { color: colors.text }]}>
               Respuestas ({comments.length})
             </Text>
 
@@ -298,7 +330,12 @@ export default function ForumScreen({ navigation, route }: Props) {
                 style={styles.commentsLoader}
               />
             ) : comments.length === 0 ? (
-              <Text style={styles.commentEmptyText}>
+              <Text
+                style={[
+                  styles.commentEmptyText,
+                  { color: colors.secondaryText },
+                ]}
+              >
                 Todavía no hay respuestas. ¡Sé la primera persona en comentar!
               </Text>
             ) : (
@@ -309,18 +346,42 @@ export default function ForumScreen({ navigation, route }: Props) {
                     : `Usuario ${comment.user_id}`;
 
                 return (
-                  <View key={comment.id} style={styles.commentCard}>
+                  <View
+                    key={comment.id}
+                    style={[
+                      styles.commentCard,
+                      {
+                        backgroundColor: colors.background,
+                        borderColor: colors.border,
+                      },
+                    ]}
+                  >
                     <View style={styles.commentHeader}>
-                      <Text style={styles.commentAuthor}>
+                      <Text
+                        style={[
+                          styles.commentAuthor,
+                          { color: colors.text },
+                        ]}
+                      >
                         {commentAuthor}
                       </Text>
 
-                      <Text style={styles.commentDate}>
+                      <Text
+                        style={[
+                          styles.commentDate,
+                          { color: colors.secondaryText },
+                        ]}
+                      >
                         {new Date(comment.created_at).toLocaleDateString()}
                       </Text>
                     </View>
 
-                    <Text style={styles.commentContent}>
+                    <Text
+                      style={[
+                        styles.commentContent,
+                        { color: colors.secondaryText },
+                      ]}
+                    >
                       {comment.content}
                     </Text>
                   </View>
@@ -329,9 +390,16 @@ export default function ForumScreen({ navigation, route }: Props) {
             )}
 
             <TextInput
-              style={styles.commentInput}
+              style={[
+                styles.commentInput,
+                {
+                  color: colors.text,
+                  backgroundColor: colors.input,
+                  borderColor: colors.border,
+                },
+              ]}
               placeholder="Escribe tu respuesta..."
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor={colors.secondaryText}
               value={commentDrafts[item.id] ?? ""}
               onChangeText={(text) =>
                 setCommentDrafts((previous) => ({
@@ -376,19 +444,31 @@ export default function ForumScreen({ navigation, route }: Props) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
+      <View
+        style={[
+          styles.header,
+          {
+            backgroundColor: colors.surface,
+            borderBottomColor: colors.border,
+          },
+        ]}
+      >
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.navigate("Home", { user })}
         >
-          <Ionicons name="arrow-back" size={24} color="#1F2937" />
+          <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
 
         <View style={styles.headerTextContainer}>
-          <Text style={styles.headerTitle}>Foro STUDAYS</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>
+            Foro STUDAYS
+          </Text>
 
-          <Text style={styles.headerSubtitle}>
+          <Text style={[styles.headerSubtitle, { color: colors.secondaryText }]}>
             Comparte y aprende con otros estudiantes
           </Text>
         </View>
@@ -400,6 +480,8 @@ export default function ForumScreen({ navigation, route }: Props) {
         >
           <Ionicons name="chatbubbles-outline" size={23} color="#3B82F6" />
         </TouchableOpacity>
+
+        <ThemeToggleButton />
 
         <TouchableOpacity
           style={styles.refreshButton}
@@ -414,22 +496,43 @@ export default function ForumScreen({ navigation, route }: Props) {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.createPostCard}>
-        <Text style={styles.formTitle}>Crear publicación</Text>
+      <View
+        style={[
+          styles.createPostCard,
+          { backgroundColor: colors.surface, borderColor: colors.border },
+        ]}
+      >
+        <Text style={[styles.formTitle, { color: colors.text }]}>
+          Crear publicación
+        </Text>
 
         <TextInput
-          style={styles.titleInput}
+          style={[
+            styles.titleInput,
+            {
+              color: colors.text,
+              backgroundColor: colors.input,
+              borderColor: colors.border,
+            },
+          ]}
           placeholder="Escribe el título..."
-          placeholderTextColor="#94A3B8"
+          placeholderTextColor={colors.secondaryText}
           value={title}
           onChangeText={setTitle}
           maxLength={120}
         />
 
         <TextInput
-          style={styles.contentInput}
+          style={[
+            styles.contentInput,
+            {
+              color: colors.text,
+              backgroundColor: colors.input,
+              borderColor: colors.border,
+            },
+          ]}
           placeholder="¿Qué quieres compartir con otros estudiantes?"
-          placeholderTextColor="#94A3B8"
+          placeholderTextColor={colors.secondaryText}
           value={content}
           onChangeText={setContent}
           multiline
@@ -457,7 +560,7 @@ export default function ForumScreen({ navigation, route }: Props) {
         <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color="#3B82F6" />
 
-          <Text style={styles.statusText}>
+          <Text style={[styles.statusText, { color: colors.secondaryText }]}>
             Cargando publicaciones...
           </Text>
         </View>
@@ -484,18 +587,25 @@ export default function ForumScreen({ navigation, route }: Props) {
                 color="#94A3B8"
               />
 
-              <Text style={styles.emptyTitle}>
+              <Text style={[styles.emptyTitle, { color: colors.text }]}>
                 Aún no hay publicaciones
               </Text>
 
-              <Text style={styles.statusText}>
+              <Text
+                style={[styles.statusText, { color: colors.secondaryText }]}
+              >
                 Cuando haya publicaciones, aparecerán aquí.
               </Text>
             </View>
           }
         />
       )}
-      <BottomNavigation active="Forum" navigation={navigation} user={user} />
+      <BottomNavigation
+        active="Forum"
+        navigation={navigation}
+        user={user}
+        themeColors={colors}
+      />
     </SafeAreaView>
   );
 }

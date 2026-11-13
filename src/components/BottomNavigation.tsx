@@ -6,6 +6,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../navigation/AppNavigator";
 import { AppUser } from "../services/authApi";
 import { styles } from "../styles/HomeStyles";
+import type { ThemeColors } from "../context/ThemeContext";
 
 type AppSection = "Home" | "Tasks" | "Calendar" | "Planner" | "Forum";
 
@@ -13,6 +14,7 @@ type Props = {
   active: AppSection;
   navigation: NativeStackNavigationProp<RootStackParamList>;
   user: AppUser;
+  themeColors?: Pick<ThemeColors, "surface" | "border" | "secondaryText">;
 };
 
 const sections: {
@@ -31,9 +33,20 @@ export default function BottomNavigation({
   active,
   navigation,
   user,
+  themeColors,
 }: Props) {
   return (
-    <View style={styles.bottomNav}>
+    <View
+      style={[
+        styles.bottomNav,
+        themeColors
+          ? {
+              backgroundColor: themeColors.surface,
+              borderColor: themeColors.border,
+            }
+          : null,
+      ]}
+    >
       {sections.map((section) => {
         const selected = section.name === active;
 
@@ -56,12 +69,17 @@ export default function BottomNavigation({
             <Ionicons
               name={section.icon}
               size={23}
-              color={selected ? "#3B82F6" : "#64748B"}
+              color={
+                selected ? "#3B82F6" : themeColors?.secondaryText ?? "#64748B"
+              }
             />
             <Text
               style={[
                 styles.navText,
                 selected ? styles.navTextActive : null,
+                themeColors && !selected
+                  ? { color: themeColors.secondaryText }
+                  : null,
               ]}
             >
               {section.label}

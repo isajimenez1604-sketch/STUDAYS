@@ -9,11 +9,14 @@ import CalendarScreen from "../screens/CalendarScreen";
 import ChatListScreen from "../screens/ChatListScreen";
 import ChatScreen from "../screens/ChatScreen";
 import ForumScreen from "../screens/ForumScreen";
+import ForgotPasswordScreen from "../screens/ForgotPasswordScreen";
 import { AppUser } from "../services/authApi";
+import { ThemeProvider } from "../context/ThemeContext";
 
 export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
+  ForgotPassword: undefined;
   Home: { user: AppUser };
   Tasks: { user: AppUser };
   Calendar: { user: AppUser };
@@ -26,10 +29,12 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function AppNavigator() {
   return (
+    <ThemeProvider>
     <NavigationContainer>
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
+      <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
       <Stack.Screen name="Home" component={HomeScreen} />
       <Stack.Screen name="Tasks" component={TasksScreen} />
       <Stack.Screen name="Calendar" component={CalendarScreen} />
@@ -38,5 +43,6 @@ export default function AppNavigator() {
       <Stack.Screen name="Forum" component={ForumScreen} />
     </Stack.Navigator>
     </NavigationContainer>
+    </ThemeProvider>
   );
 }

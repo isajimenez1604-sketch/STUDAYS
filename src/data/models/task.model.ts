@@ -6,6 +6,6 @@ export interface Task {
   title: string;
   description: string | null;
   due_date: string | null;
-  status: "pending";
+  status: "pending" | "in_progress" | "completed" | "overdue";
   created_at: string;
 }

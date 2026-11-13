@@ -158,25 +158,4 @@ export const styles = StyleSheet.create({
     marginLeft: 5,
   },
 
-  bottomDecoration: {
-    position: "absolute",
-    bottom: -60,
-    left: -50,
-    right: -50,
-    height: 120,
-    backgroundColor: "#60A5FA",
-    borderRadius: 100,
-    opacity: 0.45,
-  },
-
-  bottomDecorationLight: {
-    position: "absolute",
-    bottom: -85,
-    left: -80,
-    right: -80,
-    height: 130,
-    backgroundColor: "#BFDBFE",
-    borderRadius: 100,
-    opacity: 0.7,
-  },
 });
