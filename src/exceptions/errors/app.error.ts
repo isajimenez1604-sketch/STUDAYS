@@ -27,8 +27,46 @@ new AppException(
 401
 ),
 
+unauthorized: () =>
+new AppException(
+"AUTHENTICATION_REQUIRED",
+"Inicia sesión para continuar",
+401
+),
+
+rateLimitExceeded: () =>
+new AppException(
+"RATE_LIMIT_EXCEEDED",
+"Demasiadas solicitudes. Intenta de nuevo más tarde.",
+429
+),
+
 userNotFound: () =>
 new AppException("USER_NOT_FOUND", "Usuario no encontrado", 404),
+
+taskNotFound: () =>
+new AppException("TASK_NOT_FOUND", "Tarea no encontrada", 404),
+
+emailServiceNotConfigured: () =>
+new AppException(
+"EMAIL_SERVICE_NOT_CONFIGURED",
+"El servicio de correo no está configurado",
+503
+),
+
+emailDeliveryFailed: () =>
+new AppException(
+"EMAIL_DELIVERY_FAILED",
+"No se pudo enviar el correo. Intenta de nuevo más tarde.",
+502
+),
+
+invalidPasswordResetCode: () =>
+new AppException(
+"INVALID_PASSWORD_RESET_CODE",
+"El código es inválido o expiró. Solicita uno nuevo.",
+400
+),
 
 // Errores de chats
 chatNotFound: () =>

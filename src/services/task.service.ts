@@ -1,5 +1,5 @@
 import { Task } from "../data/models/task.model";
-import { CreateTaskDto } from "../dto/task.dto";
+import { CreateTaskDto, UpdateTaskDto } from "../dto/task.dto";
 import { ITaskRepository } from "../repositories/interfaces/task.repository.interface";
 import { ITaskService } from "./interfaces/task.interface";
 
@@ -16,5 +16,14 @@ export class TaskService implements ITaskService {
 
   async create(dto: CreateTaskDto): Promise<Task> {
     return this.taskRepository.create(dto);
+  }
+
+  async update(userId: number, dto: UpdateTaskDto): Promise<Task> {
+    const { taskId, ...changes } = dto;
+    return this.taskRepository.updateById(userId, taskId, changes);
+  }
+
+  async delete(userId: number, taskId: number): Promise<void> {
+    return this.taskRepository.deleteById(userId, taskId);
   }
 }

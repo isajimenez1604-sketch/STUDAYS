@@ -1,29 +1,139 @@
-1) Que valida:
-- nombre con al menos 2 letras
-- email correcto
-- password con mínimo 8 caracteres
-- si confirmPassword existe, debe coincidir
+STUDAYS - GUIA RAPIDA DE ENDPOINTS
 
-Respuesta:
-200/201 con el usuario creado sin la contraseña.
+Base URL local: http://localhost:3000/api/v1
+Header para peticiones JSON: Content-Type: application/json
 
-2) LOGIN
+Antes de probar:
+1. Configura SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY en el .env del backend.
+2. Configura SESSION_SECRET con un valor aleatorio de al menos 32 caracteres.
+   Ejemplo para generarlo: node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"
+3. Ejecuta src/data/migrations/005_task_status_password_reset.sql en Supabase.
+4. Para recuperacion por correo, configura RESEND_API_KEY y
+   RESEND_FROM_EMAIL en el .env. No compartas ni subas esas credenciales.
+5. Inicia el backend con npm run api.
 
-Que valida:
-- email válido
-- password no vacía
+REGISTRO
+POST /users/register
+Body:
+{
+  "name": "Ana Lopez",
+  "email": "ana@test.com",
+  "password": "12345678",
+  "confirmPassword": "12345678"
+}
+Respuesta 201:
+{ "message": "Usuario registrado", "user": { "id": 1, "name": "Ana Lopez",
+  "email": "ana@test.com", "created_at": "..." } }
+Guarda el ID numerico para las pruebas de tareas.
 
-Respuesta:
-- 200 OK si funciona
-- 401 INVALID_CREDENTIALS si falla
+INICIO DE SESION
+POST /auth/login
+Body: { "email": "ana@test.com", "password": "12345678" }
+Respuesta 200:
+{ "message": "Inicio de sesion exitoso", "accessToken": "...",
+  "expiresIn": 7200, "user": { ... } }
+Usa accessToken como Bearer token en las peticiones de tareas. El token dura
+2 horas; la app lo mantiene en memoria y al reiniciarse solicita login.
+Credenciales incorrectas: 401 INVALID_CREDENTIALS.
 
-3) TAREAS
+SOLICITAR RECUPERACION DE CONTRASENA
+POST /auth/forgot-password
+Body: { "email": "ana@test.com" }
+Respuesta 200:
+{ "message": "Si el correo esta registrado, recibiras un codigo de recuperacion." }
+La respuesta no revela si el correo esta registrado. El codigo dura 10 minutos.
+Se acepta cualquier extension valida, por ejemplo .com, .co, .edu y .org.
+forgot-password y reset-password comparten un limite de 3 solicitudes por IP
+cada 15 minutos; al excederlo responde 429 RATE_LIMIT_EXCEEDED.
 
-Que valida:
-- userId válido y positivo
-- title obligatorio, max 120
-- description opcional, max 1000
-- dueDate opcional, si existe debe ser una fecha válida
+CAMBIAR CONTRASENA
+POST /auth/reset-password
+Body:
+{
+  "email": "ana@test.com",
+  "code": "123456",
+  "newPassword": "nuevaClave123"
+}
+Respuesta 200: { "message": "La contrasena se actualizo correctamente." }
+Codigo invalido o expirado: 400 INVALID_PASSWORD_RESET_CODE.
+Para que el correo llegue realmente, Resend debe estar configurado.
 
-Respuesta:
-201 Created con la tarea creada.
+CREAR TAREA
+POST /tasks
+Header: Authorization: Bearer <accessToken>
+Body:
+{
+  "title": "Estudiar examen",
+  "description": "Repasar matematicas",
+  "dueDate": "2028-10-20T23:59:59.999-06:00"
+}
+Respuesta 201: { "message": "Tarea creada", "task": { "id": 1,
+  "user_id": 1, "title": "Estudiar examen", "description": "Repasar matematicas",
+  "due_date": "...", "status": "pending", "created_at": "..." } }
+description y dueDate son opcionales. La fecha se puede enviar en formato ISO.
+El usuario se obtiene del token; no se acepta userId en el body.
+
+LISTAR TAREAS
+GET /tasks
+Header: Authorization: Bearer <accessToken>
+Respuesta 200: { "tasks": [ { "id": 1, "user_id": 1, "title": "...",
+  "description": "...", "due_date": "...", "status": "pending",
+  "created_at": "..." } ] }
+Los estados disponibles son pending, in_progress, completed y overdue.
+Al listar se actualizan las tareas vencidas; las completadas no vencen.
+
+EDITAR TAREA / CAMBIAR ESTADO
+PATCH /tasks/1
+Header: Authorization: Bearer <accessToken>
+Body (manda al menos un campo a cambiar):
+{
+  "title": "Repasar para el examen",
+  "description": "Capitulos 1 y 2",
+  "dueDate": "2028-10-21T23:59:59.999-06:00",
+  "status": "in_progress"
+}
+Se pueden enviar solamente los campos que cambian. Estados editables:
+pending, in_progress y completed. overdue se asigna automaticamente.
+Respuesta 200: { "message": "Tarea actualizada", "task": { ... } }
+
+ELIMINAR TAREA
+DELETE /tasks/1
+Header: Authorization: Bearer <accessToken>
+Respuesta: 204 No Content.
+
+SEGURIDAD Y LIMITES
+- Las rutas de tareas requieren un token válido; sin token o con token
+  vencido responden 401 AUTHENTICATION_REQUIRED.
+- Cada usuario solo puede consultar y modificar sus propias tareas. La API
+  deriva su identidad del token, no de un userId indicado por el cliente.
+- Registro: maximo 5 solicitudes por IP cada 15 minutos.
+- Login: maximo 10 solicitudes por IP cada 15 minutos.
+- Recuperacion: maximo 3 solicitudes por IP cada 15 minutos, compartidas entre
+  solicitar codigo y cambiar contrasena.
+- Si se supera el limite, responde 429 RATE_LIMIT_EXCEEDED.
+- El token se guarda solo en memoria de la app; cerrar/reiniciar la app cierra
+  la sesion. SESSION_SECRET y SUPABASE_SERVICE_ROLE_KEY son solo del backend.
+
+LISTAR PUBLICACIONES DEL FORO
+GET /forum/posts
+Respuesta 200: { "message": "Publicaciones obtenidas correctamente",
+  "posts": [ { "id": 1, "user_id": 1, "title": "...", "content": "...",
+  "created_at": "..." } ] }
+
+CREAR PUBLICACION EN EL FORO
+POST /forum/posts
+Body: { "userId": 1, "title": "Consejos para el examen",
+  "content": "Compartamos material de estudio." }
+Respuesta 201: { "message": "Publicacion creada correctamente",
+  "post": { "id": 1, "user_id": 1, "title": "...", "content": "...",
+  "created_at": "..." } }
+
+ERRORES COMUNES
+400 VALIDATION_ERROR: datos o formato incorrectos.
+400 INVALID_PASSWORD_RESET_CODE: codigo invalido o expirado.
+401 INVALID_CREDENTIALS: correo o contrasena de login incorrectos.
+404 USER_NOT_FOUND / TASK_NOT_FOUND: usuario o tarea inexistente.
+409 EMAIL_ALREADY_EXISTS: correo ya registrado.
+502 EMAIL_DELIVERY_FAILED / 503 EMAIL_SERVICE_NOT_CONFIGURED:
+   revisa la configuracion de Resend.
+500 DATABASE_ERROR / INTERNAL_SERVER_ERROR: error interno o de Supabase.

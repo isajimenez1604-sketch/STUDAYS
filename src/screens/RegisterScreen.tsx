@@ -22,6 +22,8 @@ import { RootStackParamList } from "../navigation/AppNavigator";
 import { styles } from "../styles/RegisterStyles";
 
 import { ApiError, registerUser } from "../services/authApi";
+import { useAppTheme } from "../context/ThemeContext";
+import ThemeToggleButton from "../components/ThemeToggleButton";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Register">;
 
@@ -32,6 +34,7 @@ type FieldErrors = Partial<
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function RegisterScreen({ navigation }: Props) {
+  const { colors } = useAppTheme();
   const [name, setName] = useState("");
 
   const [email, setEmail] = useState("");
@@ -123,14 +126,17 @@ export default function RegisterScreen({ navigation }: Props) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <ScrollView
           contentContainerStyle={styles.content}
-          keyboardShouldPersistTaps="handled"
+          keyboardShouldPersistTaps="always"
+          keyboardDismissMode="none"
           showsVerticalScrollIndicator={false}
         >
 
@@ -145,19 +151,20 @@ export default function RegisterScreen({ navigation }: Props) {
               STUDAYS
             </Text>
 
-            <Text style={styles.subtitle}>
+            <Text style={[styles.subtitle, { color: colors.text }]}>
               Organiza. Planifica. Aprende.
             </Text>
+            <ThemeToggleButton />
 
           </View>
 
 
           {/* Título */}
-          <Text style={styles.title}>
+          <Text style={[styles.title, { color: colors.text }]}>
             ¡Crea tu cuenta!
           </Text>
 
-          <Text style={styles.description}>
+          <Text style={[styles.description, { color: colors.secondaryText }]}>
             Regístrate para comenzar a organizar tus estudios
           </Text>
 
@@ -165,7 +172,7 @@ export default function RegisterScreen({ navigation }: Props) {
           {/* Nombre */}
           <View style={styles.inputContainer}>
 
-            <Text style={styles.label}>
+            <Text style={[styles.label, { color: colors.text }]}>
               Nombre completo
             </Text>
 
@@ -173,18 +180,19 @@ export default function RegisterScreen({ navigation }: Props) {
               style={[
                 styles.inputWrapper,
                 fieldErrors.name && styles.inputWrapperError,
+                { backgroundColor: colors.surface, borderColor: fieldErrors.name ? "#EF4444" : colors.border },
               ]}
             >
 
               <Ionicons
                 name="person-outline"
                 size={20}
-                color="#64748B"
+                color={colors.secondaryText}
                 style={styles.inputIcon}
               />
 
               <TextInput
-                style={styles.input}
+                style={[styles.input, { color: colors.text }]}
                 placeholder="Tu nombre"
                 placeholderTextColor="#94A3B8"
                 value={name}
@@ -204,7 +212,7 @@ export default function RegisterScreen({ navigation }: Props) {
           {/* Correo */}
           <View style={styles.inputContainer}>
 
-            <Text style={styles.label}>
+            <Text style={[styles.label, { color: colors.text }]}>
               Correo electrónico
             </Text>
 
@@ -212,18 +220,19 @@ export default function RegisterScreen({ navigation }: Props) {
               style={[
                 styles.inputWrapper,
                 fieldErrors.email && styles.inputWrapperError,
+                { backgroundColor: colors.surface, borderColor: fieldErrors.email ? "#EF4444" : colors.border },
               ]}
             >
 
               <Ionicons
                 name="mail-outline"
                 size={20}
-                color="#64748B"
+                color={colors.secondaryText}
                 style={styles.inputIcon}
               />
 
               <TextInput
-                style={styles.input}
+                style={[styles.input, { color: colors.text }]}
                 placeholder="ejemplo@correo.com"
                 placeholderTextColor="#94A3B8"
                 value={email}
@@ -245,7 +254,7 @@ export default function RegisterScreen({ navigation }: Props) {
           {/* Contraseña */}
           <View style={styles.inputContainer}>
 
-            <Text style={styles.label}>
+            <Text style={[styles.label, { color: colors.text }]}>
               Contraseña
             </Text>
 
@@ -253,18 +262,19 @@ export default function RegisterScreen({ navigation }: Props) {
               style={[
                 styles.inputWrapper,
                 fieldErrors.password && styles.inputWrapperError,
+                { backgroundColor: colors.surface, borderColor: fieldErrors.password ? "#EF4444" : colors.border },
               ]}
             >
 
               <Ionicons
                 name="lock-closed-outline"
                 size={20}
-                color="#64748B"
+                color={colors.secondaryText}
                 style={styles.inputIcon}
               />
 
               <TextInput
-                style={styles.input}
+                style={[styles.input, { color: colors.text }]}
                 placeholder="Crea una contraseña"
                 placeholderTextColor="#94A3B8"
                 value={password}
@@ -287,7 +297,7 @@ export default function RegisterScreen({ navigation }: Props) {
                       : "eye-off-outline"
                   }
                   size={22}
-                  color="#64748B"
+                  color={colors.secondaryText}
                 />
 
               </TouchableOpacity>
@@ -304,7 +314,7 @@ export default function RegisterScreen({ navigation }: Props) {
           {/* Confirmar contraseña */}
           <View style={styles.inputContainer}>
 
-            <Text style={styles.label}>
+            <Text style={[styles.label, { color: colors.text }]}>
               Confirmar contraseña
             </Text>
 
@@ -312,18 +322,19 @@ export default function RegisterScreen({ navigation }: Props) {
               style={[
                 styles.inputWrapper,
                 fieldErrors.confirmPassword && styles.inputWrapperError,
+                { backgroundColor: colors.surface, borderColor: fieldErrors.confirmPassword ? "#EF4444" : colors.border },
               ]}
             >
 
               <Ionicons
                 name="lock-closed-outline"
                 size={20}
-                color="#64748B"
+                color={colors.secondaryText}
                 style={styles.inputIcon}
               />
 
               <TextInput
-                style={styles.input}
+                style={[styles.input, { color: colors.text }]}
                 placeholder="Repite tu contraseña"
                 placeholderTextColor="#94A3B8"
                 value={confirmPassword}
@@ -348,7 +359,7 @@ export default function RegisterScreen({ navigation }: Props) {
                       : "eye-off-outline"
                   }
                   size={22}
-                  color="#64748B"
+                  color={colors.secondaryText}
                 />
 
               </TouchableOpacity>
@@ -392,7 +403,7 @@ export default function RegisterScreen({ navigation }: Props) {
           {/* Ir al Login */}
           <View style={styles.loginContainer}>
 
-            <Text style={styles.loginQuestion}>
+            <Text style={[styles.loginQuestion, { color: colors.secondaryText }]}>
               ¿Ya tienes una cuenta?
             </Text>
 
@@ -410,11 +421,6 @@ export default function RegisterScreen({ navigation }: Props) {
 
         </ScrollView>
 
-
-        {/* Decoración inferior */}
-        <View style={styles.bottomDecorationLight} />
-
-        <View style={styles.bottomDecoration} />
 
       </KeyboardAvoidingView>
     </SafeAreaView>

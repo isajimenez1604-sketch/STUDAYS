@@ -1,4 +1,5 @@
 import { API_URL } from "../config/api";
+import { getAccessToken } from "./currentUser";
 
 export interface RegisterInput {
   name: string;
@@ -21,6 +22,8 @@ export interface AppUser {
 
 export interface LoginResponse {
   user: AppUser;
+  accessToken: string;
+  expiresIn: number;
 }
 
 export interface AppTask {
@@ -29,15 +32,24 @@ export interface AppTask {
   title: string;
   description: string | null;
   due_date: string | null;
-  status: "pending";
+  status: TaskStatus;
   created_at: string;
 }
 
+export type TaskStatus = "pending" | "in_progress" | "completed" | "overdue";
+export type EditableTaskStatus = Exclude<TaskStatus, "overdue">;
+
 export interface CreateTaskInput {
-  userId: number;
   title: string;
   description?: string;
   dueDate?: string | null;
+}
+
+export interface UpdateTaskInput {
+  title?: string;
+  description?: string | null;
+  dueDate?: string | null;
+  status?: EditableTaskStatus;
 }
 
 // Error de la API con el mismo formato que devuelve el backend
@@ -56,9 +68,14 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   let response: Response;
 
   try {
+    const token = getAccessToken();
     response = await fetch(`${API_URL}${path}`, {
       ...options,
-      headers: { "Content-Type": "application/json", ...options.headers },
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...options.headers,
+      },
     });
   } catch {
     throw new ApiError(
@@ -95,10 +112,8 @@ export function loginUser(input: LoginInput): Promise<LoginResponse> {
   });
 }
 
-export async function listTasks(userId: number): Promise<AppTask[]> {
-  const data = await request<{ tasks: AppTask[] }>(
-    `/tasks?userId=${encodeURIComponent(String(userId))}`
-  );
+export async function listTasks(): Promise<AppTask[]> {
+  const data = await request<{ tasks: AppTask[] }>("/tasks");
   return data.tasks;
 }
 
@@ -108,4 +123,39 @@ export async function createTask(input: CreateTaskInput): Promise<AppTask> {
     body: JSON.stringify(input),
   });
   return data.task;
+}
+
+export async function updateTask(
+  taskId: number,
+  changes: UpdateTaskInput
+): Promise<AppTask> {
+  const data = await request<{ task: AppTask }>(`/tasks/${taskId}`, {
+    method: "PATCH",
+    body: JSON.stringify(changes),
+  });
+  return data.task;
+}
+
+export async function deleteTask(taskId: number): Promise<void> {
+  await request<void>(`/tasks/${taskId}`, { method: "DELETE" });
+}
+
+export async function requestPasswordReset(email: string): Promise<string> {
+  const data = await request<{ message: string }>("/auth/forgot-password", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+  return data.message;
+}
+
+export async function resetPassword(input: {
+  email: string;
+  code: string;
+  newPassword: string;
+}): Promise<string> {
+  const data = await request<{ message: string }>("/auth/reset-password", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+  return data.message;
 }

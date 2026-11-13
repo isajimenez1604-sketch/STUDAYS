@@ -3,19 +3,20 @@ STUDAYS - PRUEBAS DE API CON THUNDER CLIENT
 BASE URL:
 http://localhost:3000/api/v1
 
-ENDPOINTS DISPONIBLES (5):
-POST   /users/register
-POST   /auth/login
-POST   /tasks
-GET    /forum/posts
-POST   /forum/posts
+PREPARACION
+1. Configura SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY en el .env del backend.
+2. Configura SESSION_SECRET en el .env: genera un valor con
+   node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"
+   y pega el resultado en SESSION_SECRET. No lo compartas ni lo subas a Git.
+3. Ejecuta src/data/migrations/005_task_status_password_reset.sql en Supabase.
+4. Para probar recuperacion por correo configura RESEND_API_KEY y
+   RESEND_FROM_EMAIL. No guardes estas credenciales en Git.
+5. Inicia el servidor desde la terminal: npm run api
+6. En Thunder Client usa Content-Type: application/json para los cuerpos JSON.
 
-1) REGISTRAR USUARIO
+1. REGISTRAR USUARIO
 METHOD: POST
 URL: http://localhost:3000/api/v1/users/register
-Headers:
-Content-Type: application/json
-
 Body:
 {
   "name": "Ana Lopez",
@@ -23,7 +24,6 @@ Body:
   "password": "12345678",
   "confirmPassword": "12345678"
 }
-
 Respuesta esperada: 201 Created
 {
   "message": "Usuario registrado",
@@ -34,47 +34,67 @@ Respuesta esperada: 201 Created
     "created_at": "..."
   }
 }
+Guarda user.id para las pruebas de tareas. Usa otro email si ya existe.
 
-Guarda user.id. confirmPassword es opcional; si se envia, debe coincidir con
-password.
-
-2) INICIAR SESION
+2. INICIAR SESION
 METHOD: POST
 URL: http://localhost:3000/api/v1/auth/login
-Headers:
-Content-Type: application/json
-
 Body:
 {
   "email": "ana@test.com",
   "password": "12345678"
 }
-
 Respuesta esperada: 200 OK
 {
-  "message": "Inicio de sesión exitoso",
-  "user": {
-    "id": 1,
-    "name": "Ana Lopez",
-    "email": "ana@test.com",
-    "created_at": "..."
-  }
+  "message": "Inicio de sesion exitoso",
+  "accessToken": "<token>",
+  "expiresIn": 7200,
+  "user": { "id": 1, "name": "Ana Lopez", "email": "ana@test.com",
+    "created_at": "..." }
 }
+Credenciales incorrectas: 401 INVALID_CREDENTIALS.
+Guarda accessToken temporalmente en Thunder Client. En las peticiones de
+tareas agrega Authorization: Bearer <accessToken>. Dura 2 horas.
 
-3) CREAR TAREA
+3. SOLICITAR CODIGO DE RECUPERACION
 METHOD: POST
-URL: http://localhost:3000/api/v1/tasks
-Headers:
-Content-Type: application/json
+URL: http://localhost:3000/api/v1/auth/forgot-password
+Body:
+{ "email": "ana@test.com" }
+Respuesta esperada: 200 OK
+{
+  "message": "Si el correo esta registrado, recibiras un codigo de recuperacion."
+}
+La respuesta es la misma aunque el correo no exista. El codigo dura 10 minutos.
+Requiere que Resend este configurado para enviar el mensaje real.
+Se aceptan dominios con extensiones variadas, por ejemplo .com, .co, .edu y
+.org. El limite es de 3 solicitudes por IP cada 15 minutos, compartido entre
+forgot-password y reset-password. Al superar el limite, responde 429.
 
+4. RESTABLECER CONTRASENA
+METHOD: POST
+URL: http://localhost:3000/api/v1/auth/reset-password
 Body:
 {
-  "userId": 1,
+  "email": "ana@test.com",
+  "code": "123456",
+  "newPassword": "nuevaClave123"
+}
+Respuesta esperada: 200 OK
+{ "message": "La contrasena se actualizo correctamente." }
+Usa el codigo que llego al correo. Codigo incorrecto/expirado:
+400 INVALID_PASSWORD_RESET_CODE. Luego prueba el login con la nueva clave.
+
+5. CREAR TAREA
+METHOD: POST
+URL: http://localhost:3000/api/v1/tasks
+Authorization: Bearer <accessToken>
+Body:
+{
   "title": "Estudiar examen",
   "description": "Repasar temas de matematicas",
-  "dueDate": "2026-10-20T18:00:00.000Z"
+  "dueDate": "2028-10-20T23:59:59.999-06:00"
 }
-
 Respuesta esperada: 201 Created
 {
   "message": "Tarea creada",
@@ -83,82 +103,132 @@ Respuesta esperada: 201 Created
     "user_id": 1,
     "title": "Estudiar examen",
     "description": "Repasar temas de matematicas",
-    "due_date": "2026-10-20T18:00:00.000Z",
+    "due_date": "...",
     "status": "pending",
     "created_at": "..."
   }
 }
+El servidor asocia la tarea con el usuario del token. No mandes userId.
+description y dueDate son opcionales.
+Guarda task.id para editar o eliminar la tarea.
 
-userId debe ser el ID numerico de un usuario existente. description y dueDate
-son opcionales.
+6. LISTAR TAREAS
+METHOD: GET
+URL: http://localhost:3000/api/v1/tasks
+Authorization: Bearer <accessToken>
+No requiere body.
+Respuesta esperada: 200 OK
+{
+  "tasks": [
+    {
+      "id": 1, "user_id": 1, "title": "Estudiar examen",
+      "description": "Repasar temas de matematicas", "due_date": "...",
+      "status": "pending", "created_at": "..."
+    }
+  ]
+}
+Estados: pending, in_progress, completed y overdue. Al listar, el backend
+actualiza tareas vencidas; las completadas permanecen completadas.
 
-4) LISTAR PUBLICACIONES DEL FORO
+7. EDITAR TAREA O CAMBIAR ESTADO
+METHOD: PATCH
+URL: http://localhost:3000/api/v1/tasks/1
+Authorization: Bearer <accessToken>
+Body:
+{
+  "title": "Repasar examen",
+  "description": "Capitulos 1 y 2",
+  "dueDate": "2028-10-21T23:59:59.999-06:00",
+  "status": "in_progress"
+}
+Respuesta esperada: 200 OK
+{ "message": "Tarea actualizada", "task": { "id": 1, "...": "..." } }
+Envía al menos un campo modificable. Puedes mandar solo status, title,
+description o dueDate. Estados editables: pending, in_progress y
+completed. overdue se calcula automaticamente.
+
+8. ELIMINAR TAREA
+METHOD: DELETE
+URL: http://localhost:3000/api/v1/tasks/1
+Authorization: Bearer <accessToken>
+No requiere body.
+Respuesta esperada: 204 No Content.
+
+9. LISTAR PUBLICACIONES DEL FORO
 METHOD: GET
 URL: http://localhost:3000/api/v1/forum/posts
-
 No requiere body.
-
 Respuesta esperada: 200 OK
 {
   "message": "Publicaciones obtenidas correctamente",
   "posts": [
     {
-      "id": 1,
-      "user_id": 1,
-      "title": "Consejos para el examen",
-      "content": "Compartamos material de estudio.",
-      "created_at": "..."
+      "id": 1, "user_id": 1, "title": "Consejos para el examen",
+      "content": "Compartamos material de estudio.", "created_at": "..."
     }
   ]
 }
 
-5) CREAR PUBLICACION EN EL FORO
+10. CREAR PUBLICACION EN EL FORO
 METHOD: POST
 URL: http://localhost:3000/api/v1/forum/posts
-Headers:
-Content-Type: application/json
-
 Body:
 {
   "userId": 1,
   "title": "Consejos para el examen",
   "content": "Compartamos material de estudio."
 }
-
 Respuesta esperada: 201 Created
 {
-  "message": "Publicación creada correctamente",
+  "message": "Publicacion creada correctamente",
   "post": {
-    "id": 1,
-    "user_id": 1,
-    "title": "Consejos para el examen",
-    "content": "Compartamos material de estudio.",
-    "created_at": "..."
+    "id": 1, "user_id": 1, "title": "Consejos para el examen",
+    "content": "Compartamos material de estudio.", "created_at": "..."
   }
 }
+title admite hasta 150 caracteres; content, hasta 5000. Ambos son obligatorios.
 
-Guarda post.id para consultar y comentar esa publicacion. title admite hasta
-150 caracteres y content hasta 5000 caracteres; ambos son obligatorios.
-
-VALIDACIONES PRINCIPALES:
-- Registro: name de al menos 2 caracteres, email valido y password de al menos
-  8 caracteres.
-- Login: email valido y password obligatoria.
-- Tareas: userId entero positivo; title obligatorio (maximo 120 caracteres);
-  description opcional (maximo 1000); dueDate opcional y con fecha valida.
-- Chats: userId entero positivo y name obligatorio (maximo 100 caracteres).
+VALIDACIONES PRINCIPALES
+- Registro: nombre de al menos 2 caracteres, email valido, contrasena de al
+  menos 8 caracteres; confirmPassword es opcional, pero si se envia debe
+  coincidir.
+- Login: email valido y contrasena obligatoria.
+- Recuperacion: email con formato usuario@dominio.extension (por ejemplo,
+  .com, .co, .edu o .org); codigo de 6 digitos; nueva contrasena de al menos
+  8 caracteres. Limite de 3 solicitudes por IP cada 15 minutos.
+- Tareas: token obligatorio; title obligatorio (max. 120); description
+  opcional (max. 1000); dueDate opcional y debe ser una fecha valida.
+- Chats: userId entero positivo y name obligatorio (max. 100 caracteres).
 - Unirse a chat: chatId y userId enteros positivos.
-- Publicaciones: userId entero positivo, title obligatorio (maximo 150) y
-  content obligatorio (maximo 5000).
-- Comentarios: postId y userId enteros positivos; content obligatorio
-  (maximo 2000).
+- Publicaciones: userId positivo; title obligatorio (max. 150); content
+  obligatorio (max. 5000).
+- Comentarios: postId y userId positivos; content obligatorio (max. 2000).
 
-ERRORES:
-- 400: VALIDATION_ERROR o INVALID_JSON, cuando los datos no son validos.
-- 401: INVALID_CREDENTIALS, cuando el email o la contrasena de login no
-  coinciden.
-- 404: recurso/endpoint no encontrado (por ejemplo USER_NOT_FOUND,
-  CHAT_NOT_FOUND, FORUM_POST_NOT_FOUND o ROUTE_NOT_FOUND, segun el caso).
-- 409: EMAIL_ALREADY_EXISTS, cuando se registra un email ya utilizado.
-- 500: DATABASE_ERROR o INTERNAL_SERVER_ERROR, ante un error de base de datos
-  o un error inesperado del servidor.
+ERRORES
+- 400 VALIDATION_ERROR o INVALID_JSON: datos/cuerpo invalidos.
+- 400 INVALID_PASSWORD_RESET_CODE: codigo de recuperacion invalido o expirado.
+- 401 INVALID_CREDENTIALS: email o contrasena de login incorrectos.
+- 401 AUTHENTICATION_REQUIRED: falta token, es invalido o vencio.
+- 429 RATE_LIMIT_EXCEEDED: se excedio el limite de solicitudes por IP.
+- 404 USER_NOT_FOUND, TASK_NOT_FOUND, CHAT_NOT_FOUND,
+  FORUM_POST_NOT_FOUND o ROUTE_NOT_FOUND: recurso inexistente.
+- 409 EMAIL_ALREADY_EXISTS: el email ya esta registrado.
+- 502 EMAIL_DELIVERY_FAILED / 503 EMAIL_SERVICE_NOT_CONFIGURED: configura
+  Resend y revisa el envio del correo.
+- 500 DATABASE_ERROR o INTERNAL_SERVER_ERROR: error de Supabase o servidor.
+
+PRUEBAS DE SEGURIDAD (TAREAS)
+A. Solicita GET /tasks sin Authorization: debe responder 401.
+B. Cambia un caracter del token y repite GET /tasks: debe responder 401.
+C. Con el token de Ana, crea una tarea. Inicia sesion como otro usuario (B)
+   y usa su token para GET /tasks: Ana no debe aparecer en la lista de B.
+D. Con el token de B, intenta PATCH o DELETE sobre el ID de la tarea de Ana:
+   debe responder 404 TASK_NOT_FOUND; la tarea de Ana debe seguir intacta.
+E. Con token valido, intenta POST /tasks incluyendo "userId": 1:
+   debe responder 400 VALIDATION_ERROR. La identidad viene de la sesion.
+F. Intenta mas de 10 logins, 5 registros o 3 solicitudes de recuperacion desde
+   la misma IP dentro de 15 minutos: debe responder 429 RATE_LIMIT_EXCEEDED.
+
+Nota: esta protección cubre los endpoints de tareas y limita registro/login/
+recuperacion. Chat y foro mantienen su comportamiento previo y quedan fuera
+de este alcance de autenticacion.
