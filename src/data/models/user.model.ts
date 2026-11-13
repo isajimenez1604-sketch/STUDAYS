@@ -12,5 +12,10 @@ export interface UserSummary {
   id: number;
 }
 
+export interface PublicUserSummary {
+  id: number;
+  name: string;
+}
+
 // Lo que se devuelve al cliente (nunca el hash)
 export type PublicUser = Omit<User, "password_hash">;

@@ -3,8 +3,8 @@ import { supabase } from "../config/supabase";
 import {
   FORUM_COMMENTS_TABLE,
   FORUM_POSTS_TABLE,
-  ForumComment,
-  ForumPost,
+  ForumCommentRecord,
+  ForumPostRecord,
 } from "../data/models/forum.model";
 
 import {
@@ -27,7 +27,7 @@ export class ForumRepository implements IForumRepository {
   // Crear una publicación
   async createPost(
     input: CreateForumPostDto
-  ): Promise<ForumPost> {
+  ): Promise<ForumPostRecord> {
 
     const { data, error } = await supabase
       .from(FORUM_POSTS_TABLE)
@@ -52,13 +52,13 @@ export class ForumRepository implements IForumRepository {
       throw AppError.database();
     }
 
-    return data as ForumPost;
+    return data as ForumPostRecord;
   }
 
   // Buscar una publicación por su ID
   async findPostById(
     id: number
-  ): Promise<ForumPost | null> {
+  ): Promise<ForumPostRecord | null> {
 
     const { data, error } = await supabase
       .from(FORUM_POSTS_TABLE)
@@ -75,12 +75,12 @@ export class ForumRepository implements IForumRepository {
       throw AppError.database();
     }
 
-    return data as ForumPost | null;
+    return data as ForumPostRecord | null;
   }
 
   // Obtener todas las publicaciones
   // Las más recientes aparecen primero
-  async findAllPosts(): Promise<ForumPost[]> {
+  async findAllPosts(): Promise<ForumPostRecord[]> {
 
     const { data, error } = await supabase
       .from(FORUM_POSTS_TABLE)
@@ -98,13 +98,13 @@ export class ForumRepository implements IForumRepository {
       throw AppError.database();
     }
 
-    return (data ?? []) as ForumPost[];
+    return (data ?? []) as ForumPostRecord[];
   }
 
   // Crear un comentario
   async createComment(
     input: CreateForumCommentDto
-  ): Promise<ForumComment> {
+  ): Promise<ForumCommentRecord> {
 
     const { data, error } = await supabase
       .from(FORUM_COMMENTS_TABLE)
@@ -129,13 +129,13 @@ export class ForumRepository implements IForumRepository {
       throw AppError.database();
     }
 
-    return data as ForumComment;
+    return data as ForumCommentRecord;
   }
 
   // Obtener los comentarios de una publicación
   async findCommentsByPostId(
     postId: number
-  ): Promise<ForumComment[]> {
+  ): Promise<ForumCommentRecord[]> {
 
     const { data, error } = await supabase
       .from(FORUM_COMMENTS_TABLE)
@@ -154,6 +154,6 @@ export class ForumRepository implements IForumRepository {
       throw AppError.database();
     }
 
-    return (data ?? []) as ForumComment[];
+    return (data ?? []) as ForumCommentRecord[];
   }
 }

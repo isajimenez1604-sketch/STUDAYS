@@ -5,8 +5,11 @@ import { container } from "../../config/container";
 import {
   ForumController,
 } from "../../controllers/forum.controller";
+import { requireAuthentication } from "../../middlewares/auth.middleware";
 
 const router = Router();
+
+router.use(requireAuthentication);
 
 // GET /api/v1/forum/posts
 // Consultar todas las publicaciones

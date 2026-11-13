@@ -25,7 +25,13 @@
     "plugins": [
       "expo-status-bar",
       "expo-font",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "expo-notifications",
+        {
+          "defaultChannel": "planner-timer"
+        }
+      ]
     ]
   }
 }

@@ -1,234 +1,321 @@
-STUDAYS - PRUEBAS DE API CON THUNDER CLIENT
-
-BASE URL:
-http://localhost:3000/api/v1
-
-PREPARACION
-1. Configura SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY en el .env del backend.
-2. Configura SESSION_SECRET en el .env: genera un valor con
-   node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"
-   y pega el resultado en SESSION_SECRET. No lo compartas ni lo subas a Git.
-3. Ejecuta src/data/migrations/005_task_status_password_reset.sql en Supabase.
-4. Para probar recuperacion por correo configura RESEND_API_KEY y
-   RESEND_FROM_EMAIL. No guardes estas credenciales en Git.
-5. Inicia el servidor desde la terminal: npm run api
-6. En Thunder Client usa Content-Type: application/json para los cuerpos JSON.
-
-1. REGISTRAR USUARIO
-METHOD: POST
-URL: http://localhost:3000/api/v1/users/register
+URL: [POST] http://localhost:3000/api/v1/users/register
 Body:
 {
   "name": "Ana Lopez",
-  "email": "ana@test.com",
+  "email": "ana.nueva@test.com",
   "password": "12345678",
   "confirmPassword": "12345678"
 }
-Respuesta esperada: 201 Created
+Resultado esperado (201):
 {
   "message": "Usuario registrado",
   "user": {
     "id": 1,
     "name": "Ana Lopez",
-    "email": "ana@test.com",
-    "created_at": "..."
+    "email": "ana.nueva@test.com",
+    "created_at": "<fecha>"
   }
 }
-Guarda user.id para las pruebas de tareas. Usa otro email si ya existe.
 
-2. INICIAR SESION
-METHOD: POST
-URL: http://localhost:3000/api/v1/auth/login
+URL: [POST] http://localhost:3000/api/v1/auth/login
 Body:
 {
-  "email": "ana@test.com",
+  "email": "ana.nueva@test.com",
   "password": "12345678"
 }
-Respuesta esperada: 200 OK
+Resultado esperado (200):
 {
-  "message": "Inicio de sesion exitoso",
+  "message": "Inicio de sesión exitoso",
   "accessToken": "<token>",
   "expiresIn": 7200,
-  "user": { "id": 1, "name": "Ana Lopez", "email": "ana@test.com",
-    "created_at": "..." }
+  "user": {
+    "id": 1,
+    "name": "Ana Lopez",
+    "email": "ana.nueva@test.com",
+    "created_at": "<fecha>"
+  }
 }
-Credenciales incorrectas: 401 INVALID_CREDENTIALS.
-Guarda accessToken temporalmente en Thunder Client. En las peticiones de
-tareas agrega Authorization: Bearer <accessToken>. Dura 2 horas.
 
-3. SOLICITAR CODIGO DE RECUPERACION
-METHOD: POST
-URL: http://localhost:3000/api/v1/auth/forgot-password
-Body:
-{ "email": "ana@test.com" }
-Respuesta esperada: 200 OK
-{
-  "message": "Si el correo esta registrado, recibiras un codigo de recuperacion."
-}
-La respuesta es la misma aunque el correo no exista. El codigo dura 10 minutos.
-Requiere que Resend este configurado para enviar el mensaje real.
-Se aceptan dominios con extensiones variadas, por ejemplo .com, .co, .edu y
-.org. El limite es de 3 solicitudes por IP cada 15 minutos, compartido entre
-forgot-password y reset-password. Al superar el limite, responde 429.
-
-4. RESTABLECER CONTRASENA
-METHOD: POST
-URL: http://localhost:3000/api/v1/auth/reset-password
+URL: [POST] http://localhost:3000/api/v1/auth/forgot-password
 Body:
 {
-  "email": "ana@test.com",
-  "code": "123456",
+  "email": "ana.nueva@test.com"
+}
+Resultado esperado (200):
+{
+  "message": "Si el correo está registrado, recibirás un código de recuperación."
+}
+
+URL: [POST] http://localhost:3000/api/v1/auth/reset-password
+Body:
+{
+  "email": "ana.nueva@test.com",
+  "code": "<codigo_de_6_digitos_recibido_por_correo>",
   "newPassword": "nuevaClave123"
 }
-Respuesta esperada: 200 OK
-{ "message": "La contrasena se actualizo correctamente." }
-Usa el codigo que llego al correo. Codigo incorrecto/expirado:
-400 INVALID_PASSWORD_RESET_CODE. Luego prueba el login con la nueva clave.
+Resultado esperado (200):
+{
+  "message": "La contraseña se actualizó correctamente."
+}
 
-5. CREAR TAREA
-METHOD: POST
-URL: http://localhost:3000/api/v1/tasks
-Authorization: Bearer <accessToken>
+URL: [POST] http://localhost:3000/api/v1/auth/login
+Body:
+{
+  "email": "ana.nueva@test.com",
+  "password": "nuevaClave123"
+}
+Resultado esperado (200):
+{
+  "message": "Inicio de sesión exitoso",
+  "accessToken": "<token>",
+  "expiresIn": 7200,
+  "user": {
+    "id": 1,
+    "name": "Ana Lopez",
+    "email": "ana.nueva@test.com",
+    "created_at": "<fecha>"
+  }
+}
+
+URL: [POST] http://localhost:3000/api/v1/tasks (Authorization: Bearer <accessToken>)
 Body:
 {
   "title": "Estudiar examen",
-  "description": "Repasar temas de matematicas",
-  "dueDate": "2028-10-20T23:59:59.999-06:00"
+  "description": "Repasar matemáticas",
+  "dueDate": "2027-12-15T23:59:59.999-05:00"
 }
-Respuesta esperada: 201 Created
+Resultado esperado (201):
 {
   "message": "Tarea creada",
   "task": {
     "id": 1,
     "user_id": 1,
     "title": "Estudiar examen",
-    "description": "Repasar temas de matematicas",
-    "due_date": "...",
+    "description": "Repasar matemáticas",
+    "due_date": "<fecha>",
     "status": "pending",
-    "created_at": "..."
+    "created_at": "<fecha>"
   }
 }
-El servidor asocia la tarea con el usuario del token. No mandes userId.
-description y dueDate son opcionales.
-Guarda task.id para editar o eliminar la tarea.
 
-6. LISTAR TAREAS
-METHOD: GET
-URL: http://localhost:3000/api/v1/tasks
-Authorization: Bearer <accessToken>
-No requiere body.
-Respuesta esperada: 200 OK
+URL: [GET] http://localhost:3000/api/v1/tasks (Authorization: Bearer <accessToken>)
+Body: (sin body)
+Resultado esperado (200):
 {
   "tasks": [
     {
-      "id": 1, "user_id": 1, "title": "Estudiar examen",
-      "description": "Repasar temas de matematicas", "due_date": "...",
-      "status": "pending", "created_at": "..."
+      "id": 1,
+      "user_id": 1,
+      "title": "Estudiar examen",
+      "description": "Repasar matemáticas",
+      "due_date": "<fecha>",
+      "status": "pending",
+      "created_at": "<fecha>"
     }
   ]
 }
-Estados: pending, in_progress, completed y overdue. Al listar, el backend
-actualiza tareas vencidas; las completadas permanecen completadas.
 
-7. EDITAR TAREA O CAMBIAR ESTADO
-METHOD: PATCH
-URL: http://localhost:3000/api/v1/tasks/1
-Authorization: Bearer <accessToken>
+URL: [PATCH] http://localhost:3000/api/v1/tasks/<id_tarea_creada> (Authorization: Bearer <accessToken>)
 Body:
 {
-  "title": "Repasar examen",
-  "description": "Capitulos 1 y 2",
-  "dueDate": "2028-10-21T23:59:59.999-06:00",
+  "title": "Repasar para el examen",
   "status": "in_progress"
 }
-Respuesta esperada: 200 OK
-{ "message": "Tarea actualizada", "task": { "id": 1, "...": "..." } }
-Envía al menos un campo modificable. Puedes mandar solo status, title,
-description o dueDate. Estados editables: pending, in_progress y
-completed. overdue se calcula automaticamente.
+Resultado esperado (200):
+{
+  "message": "Tarea actualizada",
+  "task": {
+    "id": 1,
+    "user_id": 1,
+    "title": "Repasar para el examen",
+    "description": "Repasar matemáticas",
+    "due_date": "<fecha>",
+    "status": "in_progress",
+    "created_at": "<fecha>"
+  }
+}
 
-8. ELIMINAR TAREA
-METHOD: DELETE
-URL: http://localhost:3000/api/v1/tasks/1
-Authorization: Bearer <accessToken>
-No requiere body.
-Respuesta esperada: 204 No Content.
+URL: [DELETE] http://localhost:3000/api/v1/tasks/<id_tarea_creada> (Authorization: Bearer <accessToken>)
+Body: (sin body)
+Resultado esperado (204): sin contenido.
 
-9. LISTAR PUBLICACIONES DEL FORO
-METHOD: GET
-URL: http://localhost:3000/api/v1/forum/posts
-No requiere body.
-Respuesta esperada: 200 OK
+URL: [GET] http://localhost:3000/api/v1/forum/posts (Authorization: Bearer <accessToken>)
+Body: (sin body)
+Resultado esperado (200):
 {
   "message": "Publicaciones obtenidas correctamente",
   "posts": [
     {
-      "id": 1, "user_id": 1, "title": "Consejos para el examen",
-      "content": "Compartamos material de estudio.", "created_at": "..."
+      "id": 1,
+      "user_id": 1,
+      "title": "Consejos para el examen",
+      "content": "Compartamos material de estudio.",
+      "created_at": "<fecha>",
+      "author": {
+        "id": 1,
+        "name": "Ana Lopez",
+        "identifier": "STU-000001"
+      }
     }
   ]
 }
 
-10. CREAR PUBLICACION EN EL FORO
-METHOD: POST
-URL: http://localhost:3000/api/v1/forum/posts
+URL: [POST] http://localhost:3000/api/v1/forum/posts (Authorization: Bearer <accessToken>)
 Body:
 {
-  "userId": 1,
   "title": "Consejos para el examen",
   "content": "Compartamos material de estudio."
 }
-Respuesta esperada: 201 Created
+Resultado esperado (201):
 {
-  "message": "Publicacion creada correctamente",
+  "message": "Publicación creada correctamente",
   "post": {
-    "id": 1, "user_id": 1, "title": "Consejos para el examen",
-    "content": "Compartamos material de estudio.", "created_at": "..."
+    "id": 1,
+    "user_id": 1,
+    "title": "Consejos para el examen",
+    "content": "Compartamos material de estudio.",
+    "created_at": "<fecha>",
+    "author": {
+      "id": 1,
+      "name": "Ana Lopez",
+      "identifier": "STU-000001"
+    }
   }
 }
-title admite hasta 150 caracteres; content, hasta 5000. Ambos son obligatorios.
 
-VALIDACIONES PRINCIPALES
-- Registro: nombre de al menos 2 caracteres, email valido, contrasena de al
-  menos 8 caracteres; confirmPassword es opcional, pero si se envia debe
-  coincidir.
-- Login: email valido y contrasena obligatoria.
-- Recuperacion: email con formato usuario@dominio.extension (por ejemplo,
-  .com, .co, .edu o .org); codigo de 6 digitos; nueva contrasena de al menos
-  8 caracteres. Limite de 3 solicitudes por IP cada 15 minutos.
-- Tareas: token obligatorio; title obligatorio (max. 120); description
-  opcional (max. 1000); dueDate opcional y debe ser una fecha valida.
-- Chats: userId entero positivo y name obligatorio (max. 100 caracteres).
-- Unirse a chat: chatId y userId enteros positivos.
-- Publicaciones: userId positivo; title obligatorio (max. 150); content
-  obligatorio (max. 5000).
-- Comentarios: postId y userId positivos; content obligatorio (max. 2000).
+URL: [GET] http://localhost:3000/api/v1/forum/posts/<id_publicacion_creada>/comments (Authorization: Bearer <accessToken>)
+Body: (sin body)
+Resultado esperado (200):
+{
+  "message": "Comentarios obtenidos correctamente",
+  "comments": []
+}
 
-ERRORES
-- 400 VALIDATION_ERROR o INVALID_JSON: datos/cuerpo invalidos.
-- 400 INVALID_PASSWORD_RESET_CODE: codigo de recuperacion invalido o expirado.
-- 401 INVALID_CREDENTIALS: email o contrasena de login incorrectos.
-- 401 AUTHENTICATION_REQUIRED: falta token, es invalido o vencio.
-- 429 RATE_LIMIT_EXCEEDED: se excedio el limite de solicitudes por IP.
-- 404 USER_NOT_FOUND, TASK_NOT_FOUND, CHAT_NOT_FOUND,
-  FORUM_POST_NOT_FOUND o ROUTE_NOT_FOUND: recurso inexistente.
-- 409 EMAIL_ALREADY_EXISTS: el email ya esta registrado.
-- 502 EMAIL_DELIVERY_FAILED / 503 EMAIL_SERVICE_NOT_CONFIGURED: configura
-  Resend y revisa el envio del correo.
-- 500 DATABASE_ERROR o INTERNAL_SERVER_ERROR: error de Supabase o servidor.
+URL: [POST] http://localhost:3000/api/v1/forum/posts/<id_publicacion_creada>/comments (Authorization: Bearer <accessToken>)
+Body:
+{
+  "content": "Gracias por compartir."
+}
+Resultado esperado (201):
+{
+  "message": "Comentario agregado correctamente",
+  "comment": {
+    "id": 1,
+    "post_id": 1,
+    "user_id": 1,
+    "content": "Gracias por compartir.",
+    "created_at": "<fecha>",
+    "author": {
+      "id": 1,
+      "name": "Ana Lopez",
+      "identifier": "STU-000001"
+    }
+  }
+}
 
-PRUEBAS DE SEGURIDAD (TAREAS)
-A. Solicita GET /tasks sin Authorization: debe responder 401.
-B. Cambia un caracter del token y repite GET /tasks: debe responder 401.
-C. Con el token de Ana, crea una tarea. Inicia sesion como otro usuario (B)
-   y usa su token para GET /tasks: Ana no debe aparecer en la lista de B.
-D. Con el token de B, intenta PATCH o DELETE sobre el ID de la tarea de Ana:
-   debe responder 404 TASK_NOT_FOUND; la tarea de Ana debe seguir intacta.
-E. Con token valido, intenta POST /tasks incluyendo "userId": 1:
-   debe responder 400 VALIDATION_ERROR. La identidad viene de la sesion.
-F. Intenta mas de 10 logins, 5 registros o 3 solicitudes de recuperacion desde
-   la misma IP dentro de 15 minutos: debe responder 429 RATE_LIMIT_EXCEEDED.
+URL: [GET] http://localhost:3000/api/v1/planner/intervals (Authorization: Bearer <accessToken>)
+Body: (sin body)
+Resultado esperado (200):
+{
+  "intervals": []
+}
 
-Nota: esta protección cubre los endpoints de tareas y limita registro/login/
-recuperacion. Chat y foro mantienen su comportamiento previo y quedan fuera
-de este alcance de autenticacion.
+URL: [POST] http://localhost:3000/api/v1/planner/intervals (Authorization: Bearer <accessToken>)
+Body:
+{
+  "title": "Estudiar matemáticas",
+  "durationMinutes": 45,
+  "kind": "study"
+}
+Resultado esperado (201):
+{
+  "message": "Intervalo creado",
+  "interval": {
+    "id": 1,
+    "user_id": 1,
+    "title": "Estudiar matemáticas",
+    "duration_minutes": 45,
+    "kind": "study",
+    "created_at": "<fecha>"
+  }
+}
+
+URL: [PATCH] http://localhost:3000/api/v1/planner/intervals/<id_intervalo_creado> (Authorization: Bearer <accessToken>)
+Body:
+{
+  "title": "Descanso",
+  "durationMinutes": 15,
+  "kind": "break"
+}
+Resultado esperado (200):
+{
+  "message": "Intervalo actualizado",
+  "interval": {
+    "id": 1,
+    "user_id": 1,
+    "title": "Descanso",
+    "duration_minutes": 15,
+    "kind": "break",
+    "created_at": "<fecha>"
+  }
+}
+
+URL: [DELETE] http://localhost:3000/api/v1/planner/intervals/<id_intervalo_creado> (Authorization: Bearer <accessToken>)
+Body: (sin body)
+Resultado esperado (204): sin contenido.
+
+URL: [GET] http://localhost:3000/api/v1/tasks (sin Authorization)
+Body: (sin body)
+Resultado esperado (401):
+{
+  "code": "AUTHENTICATION_REQUIRED",
+  "message": "Inicia sesión para continuar"
+}
+
+URL: [POST] http://localhost:3000/api/v1/tasks (Authorization: Bearer <accessToken>)
+Body:
+{
+  "userId": 999,
+  "title": "Intento de suplantación"
+}
+Resultado esperado (400):
+{
+  "code": "VALIDATION_ERROR",
+  "message": "Datos inválidos",
+  "details": {
+    "userId": "La identidad del usuario se obtiene de la sesión"
+  }
+}
+
+URL: [POST] http://localhost:3000/api/v1/forum/posts (Authorization: Bearer <accessToken>)
+Body:
+{
+  "userId": 999,
+  "title": "Intento de suplantación",
+  "content": "No debe aceptar el usuario del body."
+}
+Resultado esperado (400):
+{
+  "code": "VALIDATION_ERROR",
+  "message": "Datos inválidos",
+  "details": {
+    "userId": "La identidad se obtiene de la sesión"
+  }
+}
+
+URL: [POST] http://localhost:3000/api/v1/planner/intervals (Authorization: Bearer <accessToken>)
+Body:
+{
+  "userId": 999,
+  "title": "Intento de suplantación",
+  "durationMinutes": 45,
+  "kind": "study"
+}
+Resultado esperado (400):
+{
+  "code": "VALIDATION_ERROR",
+  "message": "Datos inválidos",
+  "details": {
+    "userId": "La identidad se obtiene de la sesión"
+  }
+}

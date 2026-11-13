@@ -55,7 +55,10 @@ export default function BottomNavigation({
             key={section.name}
             style={styles.navItem}
             onPress={() => {
-              if (section.name === "Planner") return;
+              if (section.name === "Planner") {
+                navigation.replace("Planner", { user });
+                return;
+              }
               if (section.name === "Forum") {
                 navigation.replace("Forum", { user });
               } else {

@@ -12,6 +12,12 @@ import {
 import {
   IForumService,
 } from "../services/interfaces/forum.interface";
+import { AppError } from "../exceptions/errors/app.error";
+
+function authenticatedUserId(req: Request): number {
+  if (!req.authenticatedUserId) throw AppError.unauthorized();
+  return req.authenticatedUserId;
+}
 
 export class ForumController {
   private readonly forumService: IForumService;
@@ -31,7 +37,10 @@ export class ForumController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const dto = parseCreateForumPostDto(req.body);
+      const dto = parseCreateForumPostDto(
+        req.body,
+        authenticatedUserId(req)
+      );
 
       const post = await this.forumService.createPost(dto);
 
@@ -73,7 +82,8 @@ export class ForumController {
 
       const dto = parseCreateForumCommentDto(
         req.body,
-        postId
+        postId,
+        authenticatedUserId(req)
       );
 
       const comment = await this.forumService.createComment(

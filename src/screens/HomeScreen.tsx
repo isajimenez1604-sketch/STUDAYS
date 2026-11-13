@@ -44,6 +44,7 @@ export default function HomeScreen({ navigation, route }: Props) {
         if (active) {
           setForumPosts(
             posts
+              .filter((post) => post.user_id === user.id)
               .sort(
                 (left, right) =>
                   new Date(right.created_at).getTime() -
@@ -243,7 +244,7 @@ export default function HomeScreen({ navigation, route }: Props) {
         )}
 
         <Text style={[styles.sectionTitle, { color: colors.text }]}>
-          Novedades del foro
+          Tus publicaciones recientes
         </Text>
         {forumLoading ? (
           <ActivityIndicator color="#3B82F6" />

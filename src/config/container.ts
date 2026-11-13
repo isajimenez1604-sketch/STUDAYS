@@ -3,6 +3,7 @@ import { asClass, createContainer, InjectionMode } from "awilix";
 import { AuthController } from "../controllers/auth.controller";
 import { ChatController } from "../controllers/chat.controller";
 import { ForumController } from "../controllers/forum.controller";
+import { PlannerController } from "../controllers/planner.controller";
 import { EmailService } from "../services/email.service";
 import { PasswordResetRepository } from "../repositories/password-reset.repository";
 import { PasswordResetService } from "../services/password-reset.service";
@@ -12,11 +13,13 @@ import { UserController } from "../controllers/user.controller";
 import { TaskRepository } from "../repositories/task.repository";
 import { ChatRepository } from "../repositories/chat.repository";
 import { ForumRepository } from "../repositories/forum.repository";
+import { PlannerRepository } from "../repositories/planner.repository";
 import { UserRepository } from "../repositories/user.repository";
 
 import { AuthService } from "../services/auth.service";
 import { ChatService } from "../services/chat.service";
 import { ForumService } from "../services/forum.service";
+import { PlannerService } from "../services/planner.service";
 import { TaskService } from "../services/task.service";
 import { UserService } from "../services/user.service";
 
@@ -31,6 +34,7 @@ userRepository: asClass(UserRepository).singleton(),
 taskRepository: asClass(TaskRepository).singleton(),
 chatRepository: asClass(ChatRepository).singleton(),
 forumRepository: asClass(ForumRepository).singleton(),
+plannerRepository: asClass(PlannerRepository).singleton(),
 passwordResetRepository: asClass(PasswordResetRepository).singleton(),
 
 // Services
@@ -39,6 +43,7 @@ authService: asClass(AuthService).singleton(),
 taskService: asClass(TaskService).singleton(),
 chatService: asClass(ChatService).singleton(),
 forumService: asClass(ForumService).singleton(),
+plannerService: asClass(PlannerService).singleton(),
 emailService: asClass(EmailService).singleton(),
 passwordResetService: asClass(PasswordResetService).singleton(),
 
@@ -48,4 +53,5 @@ authController: asClass(AuthController).singleton(),
 taskController: asClass(TaskController).singleton(),
 chatController: asClass(ChatController).singleton(),
 forumController: asClass(ForumController).singleton(),
+plannerController: asClass(PlannerController).singleton(),
 });

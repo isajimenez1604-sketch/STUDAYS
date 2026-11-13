@@ -101,6 +101,13 @@ new AppException(
 404
 ),
 
+plannerIntervalNotFound: () =>
+new AppException(
+"PLANNER_INTERVAL_NOT_FOUND",
+"Intervalo de planificador no encontrado",
+404
+),
+
 // Errores generales
 routeNotFound: () =>
 new AppException("ROUTE_NOT_FOUND", "Ruta no encontrada", 404),
