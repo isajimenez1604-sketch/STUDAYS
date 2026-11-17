@@ -2,6 +2,12 @@ import { supabase } from "../config/supabase";
 import { AppError } from "../exceptions/errors/app.error";
 
 const RESET_CODES_TABLE = "password_reset_codes";
+const EMAIL_LIMITS_FUNCTION = "consume_password_reset_email_attempt";
+
+export interface PasswordResetEmailAttempt {
+  allowed: boolean;
+  retryAfterSeconds: number;
+}
 
 export interface PasswordResetCode {
   id: number;
@@ -13,6 +19,37 @@ export interface PasswordResetCode {
 }
 
 export class PasswordResetRepository {
+  async consumeEmailAttempt(emailKey: string): Promise<PasswordResetEmailAttempt> {
+    const { data, error } = await supabase.rpc(EMAIL_LIMITS_FUNCTION, {
+      p_email_key: emailKey,
+    });
+
+    if (error) {
+      console.error(
+        "[PasswordResetRepository.consumeEmailAttempt]",
+        error
+      );
+      throw AppError.database();
+    }
+
+    const result = Array.isArray(data) ? data[0] : null;
+    if (
+      !result ||
+      typeof result.allowed !== "boolean" ||
+      typeof result.retry_after_seconds !== "number"
+    ) {
+      console.error(
+        "[PasswordResetRepository.consumeEmailAttempt] Unexpected RPC response"
+      );
+      throw AppError.database();
+    }
+
+    return {
+      allowed: result.allowed,
+      retryAfterSeconds: result.retry_after_seconds,
+    };
+  }
+
   async replaceForUser(
     userId: number,
     codeHash: string,
