@@ -29,6 +29,6 @@ export const env = {
   supabaseUrl: requiredSupabaseUrl(),
   supabaseServiceKey: requiredSupabaseServiceKey(),
   sessionSecret: requiredSessionSecret(),
-  resendApiKey: process.env.RESEND_API_KEY?.trim() || null,
-  resendFromEmail: process.env.RESEND_FROM_EMAIL?.trim() || null,
+  brevoApiKey: process.env.BREVO_API_KEY?.trim() || null,
+  brevoFromEmail: process.env.BREVO_FROM_EMAIL?.trim() || null,
 };
