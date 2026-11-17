@@ -13,4 +13,8 @@ function getHost(): string {
   return Platform.OS === "android" ? "10.0.2.2" : "localhost";
 }
 
-export const API_URL = `http://${getHost()}:${API_PORT}/api/v1`;
+const configuredApiUrl = process.env.EXPO_PUBLIC_API_URL?.trim();
+
+export const API_URL =
+  configuredApiUrl?.replace(/\/+$/, "") ??
+  `http://${getHost()}:${API_PORT}/api/v1`;

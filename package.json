@@ -42,6 +42,8 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "api": "tsx watch src/main.ts",
+    "build:api": "tsc --project tsconfig.server.json",
+    "start:api": "node dist-api/main.js",
     "web": "expo start --web",
     "lint": "expo lint"
   },
