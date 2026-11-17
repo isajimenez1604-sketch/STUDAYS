@@ -14,6 +14,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 
+import BrandLogo from "../components/BrandLogo";
 import ThemeToggleButton from "../components/ThemeToggleButton";
 import { useAppTheme } from "../context/ThemeContext";
 import { RootStackParamList } from "../navigation/AppNavigator";
@@ -119,7 +120,7 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
           showsVerticalScrollIndicator={false}
         >
         <View style={styles.header}>
-          <Text style={styles.logoIcon}>🎓</Text>
+          <BrandLogo />
           <Text style={styles.logo}>STUDAYS</Text>
           <Text style={[styles.subtitle, { color: colors.text }]}>
             Recupera tu contraseña

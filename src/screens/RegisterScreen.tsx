@@ -23,6 +23,7 @@ import { styles } from "../styles/RegisterStyles";
 
 import { ApiError, registerUser } from "../services/authApi";
 import { useAppTheme } from "../context/ThemeContext";
+import BrandLogo from "../components/BrandLogo";
 import ThemeToggleButton from "../components/ThemeToggleButton";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Register">;
@@ -142,10 +143,7 @@ export default function RegisterScreen({ navigation }: Props) {
 
           {/* Logo */}
           <View style={styles.header}>
-
-            <Text style={styles.logoIcon}>
-              🎓
-            </Text>
+            <BrandLogo />
 
             <Text style={styles.logo}>
               STUDAYS

@@ -22,11 +22,6 @@ export const styles = StyleSheet.create({
     marginBottom: 35,
   },
 
-  logoIcon: {
-    fontSize: 45,
-    marginBottom: 5,
-  },
-
   logo: {
     fontSize: 38,
     fontWeight: "800",

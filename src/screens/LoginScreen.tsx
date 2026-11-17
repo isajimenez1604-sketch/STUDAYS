@@ -23,6 +23,7 @@ import { styles } from "../styles/LoginStyles";
 import { ApiError, loginUser } from "../services/authApi";
 import { setCurrentUser } from "../services/currentUser";
 import { useAppTheme } from "../context/ThemeContext";
+import BrandLogo from "../components/BrandLogo";
 import ThemeToggleButton from "../components/ThemeToggleButton";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
@@ -100,7 +101,7 @@ export default function LoginScreen({ navigation }: Props) {
         >
           {/* Logo */}
           <View style={styles.header}>
-            <Text style={styles.logoIcon}>🎓</Text>
+            <BrandLogo />
 
             <Text style={styles.logo}>STUDAYS</Text>
 
