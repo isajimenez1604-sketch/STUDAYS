@@ -41,6 +41,18 @@ new AppException(
 429
 ),
 
+passwordResetRateLimitExceeded: (retryAfterSeconds: number) => {
+const retryAfterMinutes = Math.max(1, Math.ceil(retryAfterSeconds / 60));
+return new AppException(
+"RATE_LIMIT_EXCEEDED",
+`Has alcanzado el límite de solicitudes para este correo. Intenta de nuevo en ${retryAfterMinutes} ${
+retryAfterMinutes === 1 ? "minuto" : "minutos"
+}.`,
+429,
+{ retryAfterSeconds: String(retryAfterSeconds) }
+);
+},
+
 userNotFound: () =>
 new AppException("USER_NOT_FOUND", "Usuario no encontrado", 404),
 

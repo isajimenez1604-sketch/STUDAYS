@@ -119,9 +119,13 @@ Validaciones y seguridad:
 - El envio real requiere BREVO_API_KEY y BREVO_FROM_EMAIL configurados solo
   en el backend. El remitente debe estar verificado en Brevo. Si faltan, se
   devuelve EMAIL_SERVICE_NOT_CONFIGURED.
-- forgot-password y reset-password comparten un limite de 3 solicitudes por IP
-  cada 15 minutos. Este es un limite de solicitudes, no un contador separado
-  de intentos por codigo.
+- Se permiten 5 solicitudes de codigo por correo; la quinta se envia y activa
+  un bloqueo de 15 minutos para ese correo. El limite se aplica tambien a
+  correos no registrados para no revelar si existe una cuenta.
+- forgot-password tiene un limite adicional de 20 solicitudes por IP cada 15
+  minutos; reset-password permite 10 solicitudes por IP cada 15 minutos.
+- El contador por correo se conserva en Supabase y guarda una huella HMAC, no
+  la direccion en texto plano. Se configura con la migracion 007.
 - La consumicion del codigo y el cambio de contrasena se realizan con la
   funcion SQL consume_password_reset de src/data/schema.sql:58-85, que vuelve
   a comprobar expiracion y uso al actualizar.
@@ -282,10 +286,12 @@ Tablas principales y definiciones:
 - forum_posts y forum_comments: src/data/migrations/004_create_forum.sql.
 - password_reset_codes y rutina atomica de consumo: migracion
   src/data/migrations/005_task_status_password_reset.sql y schema.sql.
+- limite de solicitudes de recuperacion por correo:
+  src/data/migrations/007_password_reset_email_rate_limit.sql y schema.sql.
 
 Antes de probar el planificador, ejecuta la migracion 006 en el SQL Editor de
-Supabase. Para recuperar contrasenas, ejecuta tambien la migracion 005 y
-configura Brevo. Configura SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY en el
+Supabase. Para recuperar contrasenas, ejecuta tambien las migraciones 005 y
+007 y configura Brevo. Configura SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY en el
 .env del backend e inicia la API con npm run api.
 
 La guia PRUEBAS_THUNDER_CLIENT.txt contiene las peticiones de prueba en el

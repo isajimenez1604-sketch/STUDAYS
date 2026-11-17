@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
-import { randomInt } from "node:crypto";
+import { createHmac, randomInt } from "node:crypto";
 
+import { env } from "../config/env";
 import { AppError } from "../exceptions/errors/app.error";
 import { PasswordResetRepository } from "../repositories/password-reset.repository";
 import { IUserRepository } from "../repositories/interfaces/user.repository.interface";
@@ -30,6 +31,18 @@ export class PasswordResetService {
 
   async requestCode(email: string): Promise<void> {
     this.emailService.assertConfigured();
+    const emailKey = createHmac("sha256", env.sessionSecret)
+      .update(email.trim().toLowerCase())
+      .digest("hex");
+    const attempt = await this.passwordResetRepository.consumeEmailAttempt(
+      emailKey
+    );
+    if (!attempt.allowed) {
+      throw AppError.passwordResetRateLimitExceeded(
+        attempt.retryAfterSeconds
+      );
+    }
+
     const user = await this.userRepository.findByEmail(email);
     if (!user) return;
 

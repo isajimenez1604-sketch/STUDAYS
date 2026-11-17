@@ -7,8 +7,8 @@ Antes de probar:
 1. Configura SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY en el .env del backend.
 2. Configura SESSION_SECRET con un valor aleatorio de al menos 32 caracteres.
    Ejemplo para generarlo: node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"
-3. Ejecuta en Supabase, en orden, las migraciones 005_task_status_password_reset.sql
-   y 006_planner_intervals.sql.
+3. Ejecuta en Supabase, en orden, las migraciones 005_task_status_password_reset.sql,
+   006_planner_intervals.sql y 007_password_reset_email_rate_limit.sql.
 4. Para recuperacion por correo, configura BREVO_API_KEY y BREVO_FROM_EMAIL
    en el .env. El remitente debe estar verificado en Brevo.
 5. Inicia el backend con npm run api.
@@ -44,8 +44,11 @@ Respuesta 200:
 { "message": "Si el correo esta registrado, recibiras un codigo de recuperacion." }
 La respuesta no revela si el correo esta registrado. El codigo dura 10 minutos.
 Se acepta cualquier extension valida, por ejemplo .com, .co, .edu y .org.
-forgot-password y reset-password comparten un limite de 3 solicitudes por IP
-cada 15 minutos; al excederlo responde 429 RATE_LIMIT_EXCEEDED.
+Se permiten 5 solicitudes por correo; la quinta se envia y bloquea nuevas
+solicitudes para ese correo durante 15 minutos. forgot-password tiene un limite
+adicional de 20 solicitudes por IP cada 15 minutos; reset-password permite 10
+solicitudes por IP cada 15 minutos. Al superar un limite responde
+429 RATE_LIMIT_EXCEEDED.
 
 CAMBIAR CONTRASENA
 POST /auth/reset-password

@@ -42,7 +42,7 @@ export default function ChatScreen({ navigation, route }: Props) {
     <SafeAreaView style={chatStyles.container}>
       <KeyboardAvoidingView
         style={chatStyles.keyboardView}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <View style={chatStyles.header}>
           <TouchableOpacity

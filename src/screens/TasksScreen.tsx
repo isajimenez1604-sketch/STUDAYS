@@ -213,7 +213,7 @@ export default function TasksScreen({ navigation, route }: Props) {
     >
       <KeyboardAvoidingView
         style={taskStyles.keyboardView}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <ScrollView
           contentContainerStyle={styles.content}

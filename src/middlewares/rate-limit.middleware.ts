@@ -20,9 +20,17 @@ export const registerRateLimit = rateLimit({
   handler: (_req, _res, next) => next(AppError.rateLimitExceeded()),
 });
 
-export const passwordResetRateLimit = rateLimit({
+export const passwordResetRequestIpRateLimit = rateLimit({
   windowMs: fifteenMinutes,
-  limit: 3,
+  limit: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (_req, _res, next) => next(AppError.rateLimitExceeded()),
+});
+
+export const passwordResetConfirmIpRateLimit = rateLimit({
+  windowMs: fifteenMinutes,
+  limit: 10,
   standardHeaders: true,
   legacyHeaders: false,
   handler: (_req, _res, next) => next(AppError.rateLimitExceeded()),
