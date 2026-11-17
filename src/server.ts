@@ -10,6 +10,10 @@ import v1Routes from "./routes/v1";
 // Aquí solo se construye la app; quien la enciende es main.ts
 export const app = express();
 
+app.get("/health", (_req, res) => {
+  res.status(200).json({ status: "ok" });
+});
+
 app.use(cors());
 app.use(express.json());
 
