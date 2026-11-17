@@ -17,7 +17,8 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.juanjoj.STUDAYS"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -32,6 +33,12 @@
           "defaultChannel": "planner-timer"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "d0978808-4cfc-47d9-9df3-c436b103ac5b"
+      }
+    },
+    "owner": "juanjoj"
   }
 }

@@ -12,7 +12,7 @@ se modifico en esta entrega.
 - Dependencias del backend: Awilix conecta controladores, servicios y repositorios.
 - Sesion: JWT firmado con jsonwebtoken; contrasenas y codigos con bcryptjs.
 - Limites de solicitudes: express-rate-limit.
-- Correo de recuperacion: Resend mediante HTTPS.
+- Correo de recuperacion: Brevo mediante HTTPS.
 - Planificador: react-native-svg dibuja el reloj; AsyncStorage conserva el estado
   del temporizador localmente; expo-notifications programa avisos del sistema.
 
@@ -98,7 +98,7 @@ API: POST /auth/forgot-password y POST /auth/reset-password.
 
 En la primera peticion se valida el correo. Si existe la cuenta, el servidor
 genera un numero aleatorio criptografico de seis digitos, guarda solamente su
-hash y fecha de expiracion, y solicita a Resend que envie el codigo. El codigo
+hash y fecha de expiracion, y solicita a Brevo que envie el codigo. El codigo
 vence a los 10 minutos. En la segunda peticion el backend valida el codigo,
 guarda el hash de la nueva contrasena y marca el codigo como usado.
 
@@ -116,8 +116,9 @@ Validaciones y seguridad:
 - Los codigos activos anteriores se sustituyen; el codigo nuevo vence y solo
   puede consumirse una vez.
 - La respuesta a solicitar un codigo no confirma si el correo esta registrado.
-- El envio real requiere RESEND_API_KEY y RESEND_FROM_EMAIL configurados solo
-  en el backend. Si faltan, se devuelve EMAIL_SERVICE_NOT_CONFIGURED.
+- El envio real requiere BREVO_API_KEY y BREVO_FROM_EMAIL configurados solo
+  en el backend. El remitente debe estar verificado en Brevo. Si faltan, se
+  devuelve EMAIL_SERVICE_NOT_CONFIGURED.
 - forgot-password y reset-password comparten un limite de 3 solicitudes por IP
   cada 15 minutos. Este es un limite de solicitudes, no un contador separado
   de intentos por codigo.
@@ -266,9 +267,10 @@ Validaciones y seguridad:
 - Las tablas users, tasks, password_reset_codes y planner_intervals tienen
   Row Level Security habilitada en Supabase. No se crean politicas para el
   cliente movil: las operaciones se hacen en el backend con la service role.
-- SUPABASE_SERVICE_ROLE_KEY, SESSION_SECRET, RESEND_API_KEY y
-  RESEND_FROM_EMAIL son secretos del backend; no deben incluirse en la app ni
-  subirse al repositorio.
+- SUPABASE_SERVICE_ROLE_KEY, SESSION_SECRET y BREVO_API_KEY son secretos del
+  backend; no deben incluirse en la app ni subirse al repositorio.
+- BREVO_FROM_EMAIL es la direccion remitente y debe coincidir con una direccion
+  verificada en Brevo.
 - Las solicitudes que necesitan autenticacion fallan con 401 sin token, con
   token invalido o vencido. Los datos no deben protegerse enviando un userId
   desde el telefono; el backend siempre lo obtiene del token.
@@ -283,7 +285,7 @@ Tablas principales y definiciones:
 
 Antes de probar el planificador, ejecuta la migracion 006 en el SQL Editor de
 Supabase. Para recuperar contrasenas, ejecuta tambien la migracion 005 y
-configura Resend. Configura SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY en el
+configura Brevo. Configura SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY en el
 .env del backend e inicia la API con npm run api.
 
 La guia PRUEBAS_THUNDER_CLIENT.txt contiene las peticiones de prueba en el
